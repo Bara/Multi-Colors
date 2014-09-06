@@ -8,6 +8,21 @@
 
 
 
+/*
+*
+*   Credits:
+*       - Popoklopsi
+*       - Powerlord
+*       - exvel
+*       - Dr. McKay
+*
+*   Based on stamm-colors
+*       - https://github.com/popoklopsi/Stamm/blob/master/include/stamm/stamm-colors.inc
+*
+*/
+
+
+
 /* Global var to check whether colors are fixed or not */
 new bool:g_bCFixColors = false;
 
