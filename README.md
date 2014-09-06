@@ -1,4 +1,4 @@
-Multi-Colors
+Multi Colors
 ============
 
-colors.inc and morecolors.inc in one library
+colors.inc (for csgo) and morecolors.inc (for css, tf2, hl2dm and dods) in one library
