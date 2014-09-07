@@ -6,7 +6,7 @@
 #include <multicolors/colors>
 #include <multicolors/morecolors>
 
-
+#define MuCo_VERSION "1.0.0"
 
 /*
 *
