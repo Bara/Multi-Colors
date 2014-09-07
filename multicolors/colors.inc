@@ -2,7 +2,7 @@
  *                                                                        *
  *                       Colored Chat Functions                           *
  *                   Author: exvel, Editor: Popoklopsi, Powerlord, Bara   *
- *                           Version: 1.2.3                               *
+ *                           Version: 1.2.4                               *
  *                                                                        *
  **************************************************************************/
  
@@ -13,7 +13,7 @@
 #define _colors_included
  
 #define MAX_MESSAGE_LENGTH 250
-#define MAX_COLORS 12
+#define MAX_COLORS 18
 
 #define SERVER_INDEX 0
 #define NO_INDEX -1
@@ -32,19 +32,25 @@ enum C_Colors
 	Color_Lightred,
 	Color_Purple,
 	Color_Grey,
-	Color_Orange
+	Color_Orange,
+	Color_Bluegrey,
+	Color_Lightblue,
+	Color_Darkblue,
+	Color_Grey2,
+	Color_Orchid,
+	Color_Lightred2
 }
 
 /* C_Colors' properties */
-new String:C_Tag[][] = {"{default}", "{darkred}", "{green}", "{lightgreen}", "{red}", "{blue}", "{olive}", "{lime}", "{lightred}", "{purple}", "{grey}", "{orange}"};
-new String:C_TagCode[][] = {"\x01", "\x02", "\x04", "\x03", "\x03", "\x03", "\x05", "\x06", "\x07", "\x03", "\x08", "\x09"};
-new bool:C_TagReqSayText2[] = {false, false, false, true, true, true, false, false, false, false, false, false};
+new String:C_Tag[][] = {"{default}", "{darkred}", "{green}", "{lightgreen}", "{red}", "{blue}", "{olive}", "{lime}", "{lightred}", "{purple}", "{grey}", "{orange}", "{bluegrey}", "{lightblue}", "{darkblue}", "{grey2}", "{orchid}", "{lightred2}"};
+new String:C_TagCode[][] = {"\x01", "\x02", "\x04", "\x03", "\x03", "\x03", "\x05", "\x06", "\x07", "\x03", "\x08", "\x09", "\x0A", "\x0B", "\x0C", "\x0D", "\x0E", "\x0F"};
+new bool:C_TagReqSayText2[] = {false, false, false, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false};
 new bool:C_EventIsHooked = false;
 new bool:C_SkipList[MAXPLAYERS+1] = {false,...};
 
 /* Game default profile */
-new bool:C_Profile_Colors[] = {true, false, true, false, false, false, false, false, false, false, false, false};
-new C_Profile_TeamIndex[] = {NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX};
+new bool:C_Profile_Colors[] = {true, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
+new C_Profile_TeamIndex[] = {NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX};
 new bool:C_Profile_SayText2 = false;
 
 static Handle:sm_show_activity = INVALID_HANDLE;
@@ -349,7 +355,7 @@ stock C_Format(String:szMessage[], maxlength, author=NO_INDEX)
 	// On CS:GO set invisible precolor
 	if (GetEngineVersion() == Engine_CSGO) 
 	{
-		Format(szMessage, maxlength, " \x01\x0B\x01%s", szMessage);
+		Format(szMessage, maxlength, " %s", szMessage);
 	}
 	
 	/* If author was specified replace {teamcolor} tag */
@@ -508,6 +514,12 @@ stock C_SetupProfile()
 		C_Profile_Colors[Color_Purple] = true;
 		C_Profile_Colors[Color_Grey] = true;
 		C_Profile_Colors[Color_Orange] = true;
+		C_Profile_Colors[Color_Bluegrey] = true;
+		C_Profile_Colors[Color_Lightblue] = true;
+		C_Profile_Colors[Color_Darkblue] = true;
+		C_Profile_Colors[Color_Grey2] = true;
+		C_Profile_Colors[Color_Orchid] = true;
+		C_Profile_Colors[Color_Lightred2] = true;
 		C_Profile_TeamIndex[Color_Red] = 2;
 		C_Profile_TeamIndex[Color_Blue] = 3;
 		C_Profile_SayText2 = true;
