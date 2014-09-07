@@ -152,12 +152,11 @@ stock MC_SendMessage(client, const String:message[], author=0) {
 	if(author == 0) {
 		author = client;
 	}
-	decl String:buffer[MC_MAX_MESSAGE_LENGTH], String:game[16];
-	GetGameFolderName(game, sizeof(game));
+	decl String:buffer[MC_MAX_MESSAGE_LENGTH];
 	strcopy(buffer, sizeof(buffer), message);
 	new UserMsg:index = GetUserMessageId("SayText2");
 	if(index == INVALID_MESSAGE_ID) {
-		if(StrEqual(game, "dod")) {
+		if(GetEngineVersion() == Engine_DODS) {
 			new team = GetClientTeam(author);
 			if(team == 0) {
 				ReplaceString(buffer, sizeof(buffer), "\x03", "\x04", false); // Unassigned gets green

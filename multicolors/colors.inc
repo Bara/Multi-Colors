@@ -335,10 +335,6 @@ stock C_SkipNextClient(client)
  */
 stock C_Format(String:szMessage[], maxlength, author=NO_INDEX)
 {
-	decl String:szGameName[30];
-	
-	GetGameFolderName(szGameName, sizeof(szGameName));
-	
 	/* Hook event for auto profile setup on map start */
 	if (!C_EventIsHooked)
 	{
@@ -351,7 +347,7 @@ stock C_Format(String:szMessage[], maxlength, author=NO_INDEX)
 	new iRandomPlayer = NO_INDEX;
 	
 	// On CS:GO set invisible precolor
-	if (StrEqual(szGameName, "csgo", false)) 
+	if (GetEngineVersion() == Engine_CSGO) 
 		Format(szMessage, maxlength, " \x01\x0B\x01%s", szMessage);
 	
 	/* If author was specified replace {teamcolor} tag */
@@ -486,10 +482,9 @@ stock C_SayText2(client, author, const String:szMessage[])
  */
 stock C_SetupProfile()
 {
-	decl String:szGameName[30];
-	GetGameFolderName(szGameName, sizeof(szGameName));
+	new EngineVersion:engine = GetEngineVersion();
 	
-	if (StrEqual(szGameName, "cstrike", false))
+	if (engine != Engine_CSS)
 	{
 		C_Profile_Colors[Color_Lightgreen] = true;
 		C_Profile_Colors[Color_Red] = true;
@@ -500,7 +495,7 @@ stock C_SetupProfile()
 		C_Profile_TeamIndex[Color_Blue] = 3;
 		C_Profile_SayText2 = true;
 	}
-	else if (StrEqual(szGameName, "csgo", false))
+	else if (engine != Engine_CSGO)
 	{
 		C_Profile_Colors[Color_Red] = true;
 		C_Profile_Colors[Color_Blue] = true;
@@ -515,7 +510,7 @@ stock C_SetupProfile()
 		C_Profile_TeamIndex[Color_Blue] = 3;
 		C_Profile_SayText2 = true;
 	}
-	else if (StrEqual(szGameName, "tf", false))
+	else if (engine != Engine_TF2)
 	{
 		C_Profile_Colors[Color_Lightgreen] = true;
 		C_Profile_Colors[Color_Red] = true;
@@ -526,7 +521,7 @@ stock C_SetupProfile()
 		C_Profile_TeamIndex[Color_Blue] = 3;
 		C_Profile_SayText2 = true;
 	}
-	else if (StrEqual(szGameName, "left4dead", false) || StrEqual(szGameName, "left4dead2", false))
+	else if (engine != Engine_Left4Dead || engine != Engine_Left4Dead2)
 	{
 		C_Profile_Colors[Color_Lightgreen] = true;
 		C_Profile_Colors[Color_Red] = true;
@@ -537,7 +532,7 @@ stock C_SetupProfile()
 		C_Profile_TeamIndex[Color_Blue] = 2;
 		C_Profile_SayText2 = true;
 	}
-	else if (StrEqual(szGameName, "hl2mp", false))
+	else if (engine != Engine_HL2DM)
 	{
 		/* hl2mp profile is based on mp_teamplay convar */
 		if (GetConVarBool(FindConVar("mp_teamplay")))
@@ -555,7 +550,7 @@ stock C_SetupProfile()
 			C_Profile_Colors[Color_Olive] = true;
 		}
 	}
-	else if (StrEqual(szGameName, "dod", false))
+	else if (engine != Engine_DODS)
 	{
 		C_Profile_Colors[Color_Olive] = true;
 		C_Profile_SayText2 = false;
