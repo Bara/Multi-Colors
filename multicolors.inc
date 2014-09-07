@@ -28,8 +28,6 @@ new bool:g_bCFixColors = false;
 
 
 
-
-
 /**
  * Writes a message to a client with the correct stock for the game.
  *
@@ -212,7 +210,7 @@ stock CReplyToCommand(author, const String:message[], any:...)
 {
 	decl String:buffer[MAX_MESSAGE_LENGTH];
 
-	VFormat(buffer, sizeof(buffer), message, 3);
+	VFormat(buffer, sizeof(buffer), message, 4);
 
 
 	if (!g_bCFixColors)
@@ -288,7 +286,7 @@ stock CShowActivityEx(author, const String:tag[], const String:message[], any:..
 {
 	decl String:buffer[MAX_MESSAGE_LENGTH];
 
-	VFormat(buffer, sizeof(buffer), message, 3);
+	VFormat(buffer, sizeof(buffer), message, 4);
 
 
 	if (!g_bCFixColors)
@@ -326,7 +324,7 @@ stock CShowActivityEx(author, const String:tag[], const String:message[], any:..
 {
 	decl String:buffer[MAX_MESSAGE_LENGTH];
 
-	VFormat(buffer, sizeof(buffer), message, 3);
+	VFormat(buffer, sizeof(buffer), message, 4);
 
 
 	if (!g_bCFixColors)
@@ -395,15 +393,15 @@ stock CFixColors()
 	g_bCFixColors = true;
 
 	// Replace lightgreen if not exists
-	if (!CColorAllowed(Color_Lightgreen))
+	if (!C_ColorAllowed(Color_Lightgreen))
 	{
-		if (CColorAllowed(Color_Lime))
+		if (C_ColorAllowed(Color_Lime))
 		{
-			CReplaceColor(Color_Lightgreen, Color_Lime);
+			C_ReplaceColor(Color_Lightgreen, Color_Lime);
 		}
-		else if (CColorAllowed(Color_Olive))
+		else if (C_ColorAllowed(Color_Olive))
 		{
-			CReplaceColor(Color_Lightgreen, Color_Olive);
+			C_ReplaceColor(Color_Lightgreen, Color_Olive);
 		}
 	}
 }
