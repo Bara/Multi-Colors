@@ -635,7 +635,7 @@ stock MC_ShowActivity2(client, const String:tag[], const String:format[], any:..
 	decl String:szBuffer[MC_MAX_MESSAGE_LENGTH];
 	//decl String:szCMessage[MC_MAX_MESSAGE_LENGTH];
 	new value = GetConVarInt(sm_show_activity);
-	new ReplySource:replyto = GetCmdReplySource();
+	// new ReplySource:replyto = GetCmdReplySource();
 	
 	new String:name[MAX_NAME_LENGTH] = "Console";
 	new String:sign[MAX_NAME_LENGTH] = "ADMIN";

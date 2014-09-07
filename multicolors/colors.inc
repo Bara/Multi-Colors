@@ -36,16 +36,16 @@ enum C_Colors
 }
 
 /* C_Colors' properties */
-new String:CTag[][] = {"{default}", "{darkred}", "{green}", "{lightgreen}", "{red}", "{blue}", "{olive}", "{lime}", "{lightred}", "{purple}", "{grey}", "{orange}"};
-new String:CTagCode[][] = {"\x01", "\x02", "\x04", "\x03", "\x03", "\x03", "\x05", "\x06", "\x07", "\x03", "\x08", "\x09"};
-new bool:CTagReqSayText2[] = {false, false, false, true, true, true, false, false, false, false, false, false};
-new bool:CEventIsHooked = false;
-new bool:CSkipList[MAXPLAYERS+1] = {false,...};
+new String:C_Tag[][] = {"{default}", "{darkred}", "{green}", "{lightgreen}", "{red}", "{blue}", "{olive}", "{lime}", "{lightred}", "{purple}", "{grey}", "{orange}"};
+new String:C_TagCode[][] = {"\x01", "\x02", "\x04", "\x03", "\x03", "\x03", "\x05", "\x06", "\x07", "\x03", "\x08", "\x09"};
+new bool:C_TagReqSayText2[] = {false, false, false, true, true, true, false, false, false, false, false, false};
+new bool:C_EventIsHooked = false;
+new bool:C_SkipList[MAXPLAYERS+1] = {false,...};
 
 /* Game default profile */
-new bool:CProfile_Colors[] = {true, false, true, false, false, false, false, false, false, false, false, false};
-new CProfile_TeamIndex[] = {NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX};
-new bool:CProfile_SayText2 = false;
+new bool:C_Profile_Colors[] = {true, false, true, false, false, false, false, false, false, false, false, false};
+new C_Profile_TeamIndex[] = {NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX};
+new bool:C_Profile_SayText2 = false;
 
 static Handle:sm_show_activity = INVALID_HANDLE;
 
@@ -80,7 +80,7 @@ stock C_PrintToChat(client, const String:szMessage[], any:...)
 	if (index == NO_INDEX)
 		PrintToChat(client, "%s", szCMessage);
 	else
-		CSayText2(client, index, szCMessage);
+		C_SayText2(client, index, szCMessage);
 }
 
 /**
@@ -103,12 +103,12 @@ stock C_ReplyToCommand(client, const String:szMessage[], any:...)
 	
 	if (client == 0)
 	{
-		CRemoveTags(szCMessage, sizeof(szCMessage));
+		C_RemoveTags(szCMessage, sizeof(szCMessage));
 		PrintToServer("%s", szCMessage);
 	}
 	else if (GetCmdReplySource() == SM_REPLY_TO_CONSOLE)
 	{
-		CRemoveTags(szCMessage, sizeof(szCMessage));
+		C_RemoveTags(szCMessage, sizeof(szCMessage));
 		PrintToConsole(client, "%s", szCMessage);
 	}
 	else
@@ -138,12 +138,12 @@ stock C_ReplyToCommandEx(client, author, const String:szMessage[], any:...)
 	
 	if (client == 0)
 	{
-		CRemoveTags(szCMessage, sizeof(szCMessage));
+		C_RemoveTags(szCMessage, sizeof(szCMessage));
 		PrintToServer("%s", szCMessage);
 	}
 	else if (GetCmdReplySource() == SM_REPLY_TO_CONSOLE)
 	{
-		CRemoveTags(szCMessage, sizeof(szCMessage));
+		C_RemoveTags(szCMessage, sizeof(szCMessage));
 		PrintToConsole(client, "%s", szCMessage);
 	}
 	else
@@ -166,7 +166,7 @@ stock C_PrintToChatAll(const String:szMessage[], any:...)
 	
 	for (new i = 1; i <= MaxClients; i++)
 	{
-		if (IsClientInGame(i) && !IsFakeClient(i) && !CSkipList[i])
+		if (IsClientInGame(i) && !IsFakeClient(i) && !C_SkipList[i])
 		{
 			SetGlobalTransTarget(i);
 			VFormat(szBuffer, sizeof(szBuffer), szMessage, 2);
@@ -174,7 +174,7 @@ stock C_PrintToChatAll(const String:szMessage[], any:...)
 			C_PrintToChat(i, "%s", szBuffer);
 		}
 		
-		CSkipList[i] = false;
+		C_SkipList[i] = false;
 	}
 }
 
@@ -213,7 +213,7 @@ stock C_PrintToChatEx(client, author, const String:szMessage[], any:...)
 	if (index == NO_INDEX)
 		PrintToChat(client, "%s", szCMessage);
 	else
-		CSayText2(client, author, szCMessage);
+		C_SayText2(client, author, szCMessage);
 }
 
 /**
@@ -238,7 +238,7 @@ stock C_PrintToChatAllEx(author, const String:szMessage[], any:...)
 	
 	for (new i = 1; i <= MaxClients; i++)
 	{
-		if (IsClientInGame(i) && !IsFakeClient(i) && !CSkipList[i])
+		if (IsClientInGame(i) && !IsFakeClient(i) && !C_SkipList[i])
 		{
 			SetGlobalTransTarget(i);
 			VFormat(szBuffer, sizeof(szBuffer), szMessage, 3);
@@ -246,7 +246,7 @@ stock C_PrintToChatAllEx(author, const String:szMessage[], any:...)
 			C_PrintToChatEx(i, author, "%s", szBuffer);
 		}
 		
-		CSkipList[i] = false;
+		C_SkipList[i] = false;
 	}
 }
 
@@ -256,10 +256,10 @@ stock C_PrintToChatAllEx(author, const String:szMessage[], any:...)
  * @param szMessage   String.
  * @return			  No return
  */
-stock CRemoveTags(String:szMessage[], maxlength)
+stock C_RemoveTags(String:szMessage[], maxlength)
 {
 	for (new i = 0; i < MAX_COLORS; i++)
-		ReplaceString(szMessage, maxlength, CTag[i], "", false);
+		ReplaceString(szMessage, maxlength, C_Tag[i], "", false);
 	
 	ReplaceString(szMessage, maxlength, "{teamcolor}", "", false);
 }
@@ -270,16 +270,16 @@ stock CRemoveTags(String:szMessage[], maxlength)
  * @param tag   		Color Tag.
  * @return			 	True when color is supported, otherwise false
  */
-stock CColorAllowed(C_Colors:color)
+stock C_ColorAllowed(C_Colors:color)
 {
-	if (!CEventIsHooked)
+	if (!C_EventIsHooked)
 	{
-		CSetupProfile();
+		C_SetupProfile();
 		
-		CEventIsHooked = true;
+		C_EventIsHooked = true;
 	}
 	
-	return CProfile_Colors[color];
+	return C_Profile_Colors[color];
 }
 
 /**
@@ -290,20 +290,20 @@ stock CColorAllowed(C_Colors:color)
  * @param newColor   		color to replace with.
  * @noreturn
  */
-stock CReplaceColor(C_Colors:color, C_Colors:newColor)
+stock C_ReplaceColor(C_Colors:color, C_Colors:newColor)
 {
-	if (!CEventIsHooked)
+	if (!C_EventIsHooked)
 	{
-		CSetupProfile();
+		C_SetupProfile();
 		
-		CEventIsHooked = true;
+		C_EventIsHooked = true;
 	}
 	
-	CProfile_Colors[color] = CProfile_Colors[newColor];
-	CProfile_TeamIndex[color] = CProfile_TeamIndex[newColor];
+	C_Profile_Colors[color] = C_Profile_Colors[newColor];
+	C_Profile_TeamIndex[color] = C_Profile_TeamIndex[newColor];
 	
-	CTagReqSayText2[color] = CTagReqSayText2[newColor];
-	Format(CTagCode[color], sizeof(CTagCode[]), CTagCode[newColor])
+	C_TagReqSayText2[color] = C_TagReqSayText2[newColor];
+	Format(C_TagCode[color], sizeof(C_TagCode[]), C_TagCode[newColor])
 }
 
 /**
@@ -316,12 +316,12 @@ stock CReplaceColor(C_Colors:color, C_Colors:newColor)
  * @param client   Client index
  * @return		   No return
  */
-stock CSkipNextClient(client)
+stock C_SkipNextClient(client)
 {
 	if (client <= 0 || client > MaxClients)
 		ThrowError("Invalid client index %d", client);
 	
-	CSkipList[client] = true;
+	C_SkipList[client] = true;
 }
 
 /**
@@ -340,12 +340,12 @@ stock C_Format(String:szMessage[], maxlength, author=NO_INDEX)
 	GetGameFolderName(szGameName, sizeof(szGameName));
 	
 	/* Hook event for auto profile setup on map start */
-	if (!CEventIsHooked)
+	if (!C_EventIsHooked)
 	{
-		CSetupProfile();
-		HookEvent("server_spawn", CEvent_MapStart, EventHookMode_PostNoCopy);
+		C_SetupProfile();
+		HookEvent("server_spawn", C_Event_MapStart, EventHookMode_PostNoCopy);
 		
-		CEventIsHooked = true;
+		C_EventIsHooked = true;
 	}
 	
 	new iRandomPlayer = NO_INDEX;
@@ -357,7 +357,7 @@ stock C_Format(String:szMessage[], maxlength, author=NO_INDEX)
 	/* If author was specified replace {teamcolor} tag */
 	if (author != NO_INDEX)
 	{
-		if (CProfile_SayText2)
+		if (C_Profile_SayText2)
 		{
 			ReplaceString(szMessage, maxlength, "{teamcolor}", "\x03", false);
 			
@@ -365,7 +365,7 @@ stock C_Format(String:szMessage[], maxlength, author=NO_INDEX)
 		}
 		/* If saytext2 is not supported by game replace {teamcolor} with green tag  */
 		else
-			ReplaceString(szMessage, maxlength, "{teamcolor}", CTagCode[Color_Green], false);
+			ReplaceString(szMessage, maxlength, "{teamcolor}", C_TagCode[Color_Green], false);
 	}
 	else
 		ReplaceString(szMessage, maxlength, "{teamcolor}", "", false);
@@ -374,23 +374,23 @@ stock C_Format(String:szMessage[], maxlength, author=NO_INDEX)
 	for (new i = 0; i < MAX_COLORS; i++)
 	{
 		/* If tag not found - skip */
-		if (StrContains(szMessage, CTag[i], false) == -1)
+		if (StrContains(szMessage, C_Tag[i], false) == -1)
 			continue;
 			
 		/* If tag is not supported by game replace it with green tag */
-		else if (!CProfile_Colors[i])
-			ReplaceString(szMessage, maxlength, CTag[i], CTagCode[Color_Green], false);
+		else if (!C_Profile_Colors[i])
+			ReplaceString(szMessage, maxlength, C_Tag[i], C_TagCode[Color_Green], false);
 		
 		/* If tag doesn't need saytext2 simply replace */
-		else if (!CTagReqSayText2[i])
-			ReplaceString(szMessage, maxlength, CTag[i], CTagCode[i], false);
+		else if (!C_TagReqSayText2[i])
+			ReplaceString(szMessage, maxlength, C_Tag[i], C_TagCode[i], false);
 
 		/* Tag needs saytext2 */
 		else
 		{
 			/* If saytext2 is not supported by game replace tag with green tag */
-			if (!CProfile_SayText2)
-				ReplaceString(szMessage, maxlength, CTag[i], CTagCode[Color_Green], false);
+			if (!C_Profile_SayText2)
+				ReplaceString(szMessage, maxlength, C_Tag[i], C_TagCode[Color_Green], false);
 				
 			/* Game supports saytext2 */
 			else 
@@ -399,21 +399,21 @@ stock C_Format(String:szMessage[], maxlength, author=NO_INDEX)
 				if (iRandomPlayer == NO_INDEX)
 				{
 					/* Searching for valid client for tag */
-					iRandomPlayer = CFindRandomPlayerByTeam(CProfile_TeamIndex[i]);
+					iRandomPlayer = C_FindRandomPlayerByTeam(C_Profile_TeamIndex[i]);
 					
 					/* If player not found replace tag with green color tag */
 					if (iRandomPlayer == NO_PLAYER)
-						ReplaceString(szMessage, maxlength, CTag[i], CTagCode[Color_Green], false);
+						ReplaceString(szMessage, maxlength, C_Tag[i], C_TagCode[Color_Green], false);
 
 					/* If player was found simply replace */
 					else
-						ReplaceString(szMessage, maxlength, CTag[i], CTagCode[i], false);
+						ReplaceString(szMessage, maxlength, C_Tag[i], C_TagCode[i], false);
 					
 				}
 				/* If found another team color tag throw error */
 				else
 				{
-					//ReplaceString(szMessage, maxlength, CTag[i], "");
+					//ReplaceString(szMessage, maxlength, C_Tag[i], "");
 					ThrowError("Using two team colors in one message is not allowed");
 				}
 			}
@@ -430,7 +430,7 @@ stock C_Format(String:szMessage[], maxlength, author=NO_INDEX)
  * @param color_team  Client team.
  * @return			  Client index or NO_PLAYER if no player found
  */
-stock CFindRandomPlayerByTeam(color_team)
+stock C_FindRandomPlayerByTeam(color_team)
 {
 	if (color_team == SERVER_INDEX)
 		return 0;
@@ -454,7 +454,7 @@ stock CFindRandomPlayerByTeam(color_team)
  * @param szMessage   Message
  * @return			  No return.
  */
-stock CSayText2(client, author, const String:szMessage[])
+stock C_SayText2(client, author, const String:szMessage[])
 {
 	new Handle:hBuffer = StartMessageOne("SayText2", client, USERMSG_RELIABLE|USERMSG_BLOCKHOOKS);
 	
@@ -484,106 +484,106 @@ stock CSayText2(client, author, const String:szMessage[])
  *
  * @return			  No return.
  */
-stock CSetupProfile()
+stock C_SetupProfile()
 {
 	decl String:szGameName[30];
 	GetGameFolderName(szGameName, sizeof(szGameName));
 	
 	if (StrEqual(szGameName, "cstrike", false))
 	{
-		CProfile_Colors[Color_Lightgreen] = true;
-		CProfile_Colors[Color_Red] = true;
-		CProfile_Colors[Color_Blue] = true;
-		CProfile_Colors[Color_Olive] = true;
-		CProfile_TeamIndex[Color_Lightgreen] = SERVER_INDEX;
-		CProfile_TeamIndex[Color_Red] = 2;
-		CProfile_TeamIndex[Color_Blue] = 3;
-		CProfile_SayText2 = true;
+		C_Profile_Colors[Color_Lightgreen] = true;
+		C_Profile_Colors[Color_Red] = true;
+		C_Profile_Colors[Color_Blue] = true;
+		C_Profile_Colors[Color_Olive] = true;
+		C_Profile_TeamIndex[Color_Lightgreen] = SERVER_INDEX;
+		C_Profile_TeamIndex[Color_Red] = 2;
+		C_Profile_TeamIndex[Color_Blue] = 3;
+		C_Profile_SayText2 = true;
 	}
 	else if (StrEqual(szGameName, "csgo", false))
 	{
-		CProfile_Colors[Color_Red] = true;
-		CProfile_Colors[Color_Blue] = true;
-		CProfile_Colors[Color_Olive] = true;
-		CProfile_Colors[Color_Darkred] = true;
-		CProfile_Colors[Color_Lime] = true;
-		CProfile_Colors[Color_Lightred] = true;
-		CProfile_Colors[Color_Purple] = true;
-		CProfile_Colors[Color_Grey] = true;
-		CProfile_Colors[Color_Orange] = true;
-		CProfile_TeamIndex[Color_Red] = 2;
-		CProfile_TeamIndex[Color_Blue] = 3;
-		CProfile_SayText2 = true;
+		C_Profile_Colors[Color_Red] = true;
+		C_Profile_Colors[Color_Blue] = true;
+		C_Profile_Colors[Color_Olive] = true;
+		C_Profile_Colors[Color_Darkred] = true;
+		C_Profile_Colors[Color_Lime] = true;
+		C_Profile_Colors[Color_Lightred] = true;
+		C_Profile_Colors[Color_Purple] = true;
+		C_Profile_Colors[Color_Grey] = true;
+		C_Profile_Colors[Color_Orange] = true;
+		C_Profile_TeamIndex[Color_Red] = 2;
+		C_Profile_TeamIndex[Color_Blue] = 3;
+		C_Profile_SayText2 = true;
 	}
 	else if (StrEqual(szGameName, "tf", false))
 	{
-		CProfile_Colors[Color_Lightgreen] = true;
-		CProfile_Colors[Color_Red] = true;
-		CProfile_Colors[Color_Blue] = true;
-		CProfile_Colors[Color_Olive] = true;
-		CProfile_TeamIndex[Color_Lightgreen] = SERVER_INDEX;
-		CProfile_TeamIndex[Color_Red] = 2;
-		CProfile_TeamIndex[Color_Blue] = 3;
-		CProfile_SayText2 = true;
+		C_Profile_Colors[Color_Lightgreen] = true;
+		C_Profile_Colors[Color_Red] = true;
+		C_Profile_Colors[Color_Blue] = true;
+		C_Profile_Colors[Color_Olive] = true;
+		C_Profile_TeamIndex[Color_Lightgreen] = SERVER_INDEX;
+		C_Profile_TeamIndex[Color_Red] = 2;
+		C_Profile_TeamIndex[Color_Blue] = 3;
+		C_Profile_SayText2 = true;
 	}
 	else if (StrEqual(szGameName, "left4dead", false) || StrEqual(szGameName, "left4dead2", false))
 	{
-		CProfile_Colors[Color_Lightgreen] = true;
-		CProfile_Colors[Color_Red] = true;
-		CProfile_Colors[Color_Blue] = true;
-		CProfile_Colors[Color_Olive] = true;		
-		CProfile_TeamIndex[Color_Lightgreen] = SERVER_INDEX;
-		CProfile_TeamIndex[Color_Red] = 3;
-		CProfile_TeamIndex[Color_Blue] = 2;
-		CProfile_SayText2 = true;
+		C_Profile_Colors[Color_Lightgreen] = true;
+		C_Profile_Colors[Color_Red] = true;
+		C_Profile_Colors[Color_Blue] = true;
+		C_Profile_Colors[Color_Olive] = true;		
+		C_Profile_TeamIndex[Color_Lightgreen] = SERVER_INDEX;
+		C_Profile_TeamIndex[Color_Red] = 3;
+		C_Profile_TeamIndex[Color_Blue] = 2;
+		C_Profile_SayText2 = true;
 	}
 	else if (StrEqual(szGameName, "hl2mp", false))
 	{
 		/* hl2mp profile is based on mp_teamplay convar */
 		if (GetConVarBool(FindConVar("mp_teamplay")))
 		{
-			CProfile_Colors[Color_Red] = true;
-			CProfile_Colors[Color_Blue] = true;
-			CProfile_Colors[Color_Olive] = true;
-			CProfile_TeamIndex[Color_Red] = 3;
-			CProfile_TeamIndex[Color_Blue] = 2;
-			CProfile_SayText2 = true;
+			C_Profile_Colors[Color_Red] = true;
+			C_Profile_Colors[Color_Blue] = true;
+			C_Profile_Colors[Color_Olive] = true;
+			C_Profile_TeamIndex[Color_Red] = 3;
+			C_Profile_TeamIndex[Color_Blue] = 2;
+			C_Profile_SayText2 = true;
 		}
 		else
 		{
-			CProfile_SayText2 = false;
-			CProfile_Colors[Color_Olive] = true;
+			C_Profile_SayText2 = false;
+			C_Profile_Colors[Color_Olive] = true;
 		}
 	}
 	else if (StrEqual(szGameName, "dod", false))
 	{
-		CProfile_Colors[Color_Olive] = true;
-		CProfile_SayText2 = false;
+		C_Profile_Colors[Color_Olive] = true;
+		C_Profile_SayText2 = false;
 	}
 	/* Profile for other games */
 	else
 	{
 		if (GetUserMessageId("SayText2") == INVALID_MESSAGE_ID)
 		{
-			CProfile_SayText2 = false;
+			C_Profile_SayText2 = false;
 		}
 		else
 		{
-			CProfile_Colors[Color_Red] = true;
-			CProfile_Colors[Color_Blue] = true;
-			CProfile_TeamIndex[Color_Red] = 2;
-			CProfile_TeamIndex[Color_Blue] = 3;
-			CProfile_SayText2 = true;
+			C_Profile_Colors[Color_Red] = true;
+			C_Profile_Colors[Color_Blue] = true;
+			C_Profile_TeamIndex[Color_Red] = 2;
+			C_Profile_TeamIndex[Color_Blue] = 3;
+			C_Profile_SayText2 = true;
 		}
 	}
 }
 
-public Action:CEvent_MapStart(Handle:event, const String:name[], bool:dontBroadcast)
+public Action:C_Event_MapStart(Handle:event, const String:name[], bool:dontBroadcast)
 {
-	CSetupProfile();
+	C_SetupProfile();
 	
 	for (new i = 1; i <= MaxClients; i++)
-		CSkipList[i] = false;
+		C_SkipList[i] = false;
 }
 
 /**
@@ -636,7 +636,7 @@ stock C_ShowActivity(client, const String:format[], any:...)
 			SetGlobalTransTarget(client);
 			VFormat(szBuffer, sizeof(szBuffer), format, 3);
 			
-			CRemoveTags(szBuffer, sizeof(szBuffer));
+			C_RemoveTags(szBuffer, sizeof(szBuffer));
 			PrintToConsole(client, "%s%s\n", tag, szBuffer);
 			display_in_chat = true;
 		}
@@ -646,7 +646,7 @@ stock C_ShowActivity(client, const String:format[], any:...)
 		SetGlobalTransTarget(LANG_SERVER);
 		VFormat(szBuffer, sizeof(szBuffer), format, 3);
 		
-		CRemoveTags(szBuffer, sizeof(szBuffer));
+		C_RemoveTags(szBuffer, sizeof(szBuffer));
 		PrintToServer("%s%s\n", tag, szBuffer);
 	}
 	
@@ -749,7 +749,7 @@ stock C_ShowActivityEx(client, const String:tag[], const String:format[], any:..
 			SetGlobalTransTarget(client);
 			VFormat(szBuffer, sizeof(szBuffer), format, 4);
 			
-			CRemoveTags(szBuffer, sizeof(szBuffer));
+			C_RemoveTags(szBuffer, sizeof(szBuffer));
 			PrintToConsole(client, "%s%s\n", tag, szBuffer);
 			display_in_chat = true;
 		}
@@ -759,7 +759,7 @@ stock C_ShowActivityEx(client, const String:tag[], const String:format[], any:..
 		SetGlobalTransTarget(LANG_SERVER);
 		VFormat(szBuffer, sizeof(szBuffer), format, 4);
 		
-		CRemoveTags(szBuffer, sizeof(szBuffer));
+		C_RemoveTags(szBuffer, sizeof(szBuffer));
 		PrintToServer("%s%s\n", tag, szBuffer);
 	}
 	
@@ -840,7 +840,7 @@ stock C_ShowActivity2(client, const String:tag[], const String:format[], any:...
 	decl String:szBuffer[MAX_MESSAGE_LENGTH];
 	//decl String:szCMessage[MAX_MESSAGE_LENGTH];
 	new value = GetConVarInt(sm_show_activity);
-	new ReplySource:replyto = GetCmdReplySource();
+	// new ReplySource:replyto = GetCmdReplySource();
 	
 	new String:name[MAX_NAME_LENGTH] = "Console";
 	new String:sign[MAX_NAME_LENGTH] = "ADMIN";
@@ -871,7 +871,7 @@ stock C_ShowActivity2(client, const String:tag[], const String:format[], any:...
 		SetGlobalTransTarget(LANG_SERVER);
 		VFormat(szBuffer, sizeof(szBuffer), format, 4);
 		
-		CRemoveTags(szBuffer, sizeof(szBuffer));
+		C_RemoveTags(szBuffer, sizeof(szBuffer));
 		PrintToServer("%s%s\n", tag, szBuffer);
 	}
 	
