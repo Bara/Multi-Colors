@@ -1,9 +1,9 @@
 Multi Colors
 ============
 
-(based on Stamm-Colors) is an summary of Colors and More Colors. Depending on the game More Colors will be used as default. Should the game be CS:GO Colors will be used. The include providing a perfect base for plugins supporting multiple games.
+(based on Stamm-Colors) is a summary of Colors and More Colors. Depending on the game More Colors will be used as default. Should the game be CS:GO Colors will be used. The include providing a perfect base for plugins supporting multiple games.
 
-Functions:
+### Functions:
  + CPrintToChat(client, const String:message[], any:...)
  + CPrintToChatAll(const String:message[], any:...)
  + CPrintToChatEx(client, author, const String:message[], any:...)
@@ -16,10 +16,10 @@ Functions:
 
 By using C* Functions, offers these include a good compatibility to Colors and More Colors.
 
-Links:
+### Links:
  + Stamm-Colors: https://github.com/popoklopsi/Stamm/blob/master/include/stamm/stamm-colors.inc
  + Colors: https://forums.alliedmods.net/showthread.php?t=96831
  + More Colors: https://forums.alliedmods.net/showthread.php?t=185016
 
-Download:
+### Download:
  + https://github.com/Bara20/Multi-Colors
