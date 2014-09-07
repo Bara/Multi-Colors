@@ -348,7 +348,9 @@ stock C_Format(String:szMessage[], maxlength, author=NO_INDEX)
 	
 	// On CS:GO set invisible precolor
 	if (GetEngineVersion() == Engine_CSGO) 
+	{
 		Format(szMessage, maxlength, " \x01\x0B\x01%s", szMessage);
+	}
 	
 	/* If author was specified replace {teamcolor} tag */
 	if (author != NO_INDEX)
@@ -484,7 +486,7 @@ stock C_SetupProfile()
 {
 	new EngineVersion:engine = GetEngineVersion();
 	
-	if (engine != Engine_CSS)
+	if (engine == Engine_CSS)
 	{
 		C_Profile_Colors[Color_Lightgreen] = true;
 		C_Profile_Colors[Color_Red] = true;
@@ -495,7 +497,7 @@ stock C_SetupProfile()
 		C_Profile_TeamIndex[Color_Blue] = 3;
 		C_Profile_SayText2 = true;
 	}
-	else if (engine != Engine_CSGO)
+	else if (engine == Engine_CSGO)
 	{
 		C_Profile_Colors[Color_Red] = true;
 		C_Profile_Colors[Color_Blue] = true;
@@ -510,7 +512,7 @@ stock C_SetupProfile()
 		C_Profile_TeamIndex[Color_Blue] = 3;
 		C_Profile_SayText2 = true;
 	}
-	else if (engine != Engine_TF2)
+	else if (engine == Engine_TF2)
 	{
 		C_Profile_Colors[Color_Lightgreen] = true;
 		C_Profile_Colors[Color_Red] = true;
@@ -521,7 +523,7 @@ stock C_SetupProfile()
 		C_Profile_TeamIndex[Color_Blue] = 3;
 		C_Profile_SayText2 = true;
 	}
-	else if (engine != Engine_Left4Dead || engine != Engine_Left4Dead2)
+	else if (engine == Engine_Left4Dead || engine == Engine_Left4Dead2)
 	{
 		C_Profile_Colors[Color_Lightgreen] = true;
 		C_Profile_Colors[Color_Red] = true;
@@ -532,7 +534,7 @@ stock C_SetupProfile()
 		C_Profile_TeamIndex[Color_Blue] = 2;
 		C_Profile_SayText2 = true;
 	}
-	else if (engine != Engine_HL2DM)
+	else if (engine == Engine_HL2DM)
 	{
 		/* hl2mp profile is based on mp_teamplay convar */
 		if (GetConVarBool(FindConVar("mp_teamplay")))
@@ -550,7 +552,7 @@ stock C_SetupProfile()
 			C_Profile_Colors[Color_Olive] = true;
 		}
 	}
-	else if (engine != Engine_DODS)
+	else if (engine == Engine_DODS)
 	{
 		C_Profile_Colors[Color_Olive] = true;
 		C_Profile_SayText2 = false;
