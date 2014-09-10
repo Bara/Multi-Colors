@@ -309,7 +309,7 @@ stock C_ReplaceColor(C_Colors:color, C_Colors:newColor)
 	C_Profile_TeamIndex[color] = C_Profile_TeamIndex[newColor];
 	
 	C_TagReqSayText2[color] = C_TagReqSayText2[newColor];
-	Format(C_TagCode[color], sizeof(C_TagCode[]), C_TagCode[newColor])
+	Format(C_TagCode[color], sizeof(C_TagCode[]), C_TagCode[newColor]);
 }
 
 /**
