@@ -484,7 +484,7 @@ stock MC_ShowActivity(client, const String:format[], any:...)
 				|| (value & 8)
 				|| ((value & 16) && is_root))
 			{
-				new String:newsign[MAX_NAME_LENGTH]
+				new String:newsign[MAX_NAME_LENGTH];
 				newsign = sign;
 				if ((value & 8) || ((value & 16) && is_root) || (i == client))
 				{

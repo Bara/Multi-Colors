@@ -1,3 +1,5 @@
+#pragma semicolon 1
+
 #include <sourcemod>
 #include <multicolors>
 
@@ -6,7 +8,7 @@ public Plugin:myinfo =
 	name = "Example plugin for multi colors",
 	author = "Bara",
 	description = "Example plugin for multi colors",
-	version = "1.0",
+	version = MuCo_VERSION,
 	url = "www.bara.in"
 }
 

@@ -6,7 +6,7 @@
 #include <multicolors/colors>
 #include <multicolors/morecolors>
 
-#define MuCo_VERSION "1.0.0"
+#define MuCo_VERSION "1.0.1"
 
 /*
 *
@@ -410,7 +410,7 @@ stock IsSource2009()
 {
 	if(GetEngineVersion() == Engine_CSS || GetEngineVersion() == Engine_HL2DM || GetEngineVersion() == Engine_DODS || GetEngineVersion() == Engine_TF2)
 	{
-		return true
+		return true;
 	}
 	else
 	{
