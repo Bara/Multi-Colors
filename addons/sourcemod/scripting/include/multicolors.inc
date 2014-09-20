@@ -50,7 +50,7 @@ stock CPrintToChat(client, const String:message[], any:...)
 	}
 
 
-	if (GetEngineVersion() == Engine_CSGO)
+	if (!IsSource2009())
 	{
 		C_PrintToChat(client, buffer);
 	}
@@ -83,7 +83,7 @@ stock CPrintToChatAll(const String:message[], any:...)
 	}
 
 
-	if (GetEngineVersion() == Engine_CSGO)
+	if (!IsSource2009())
 	{
 		C_PrintToChatAll(buffer);
 	}
@@ -120,7 +120,7 @@ stock CPrintToChatEx(client, author, const String:message[], any:...)
 	}
 	
 
-	if (GetEngineVersion() == Engine_CSGO)
+	if (!IsSource2009())
 	{
 		C_PrintToChatEx(client, author, buffer);
 	}
@@ -153,7 +153,7 @@ stock CPrintToChatAllEx(author, const String:message[], any:...)
 	}
 
 
-	if (GetEngineVersion() == Engine_CSGO)
+	if (!IsSource2009())
 	{
 		C_PrintToChatAllEx(author, buffer);
 	}
@@ -186,7 +186,7 @@ stock CReplyToCommand(author, const String:message[], any:...)
 	}
 
 
-	if (GetEngineVersion() == Engine_CSGO)
+	if (!IsSource2009())
 	{
 		C_ReplyToCommand(author, buffer);
 	}
@@ -219,7 +219,7 @@ stock CReplyToCommand(author, const String:message[], any:...)
 	}
 
 
-	if (GetEngineVersion() == Engine_CSGO)
+	if (!IsSource2009())
 	{
 		C_ReplyToCommandEx(client, author, buffer);
 	}
@@ -260,7 +260,7 @@ stock CShowActivity(author, const String:message[], any:...)
 	}
 
 
-	if (GetEngineVersion() == Engine_CSGO)
+	if (!IsSource2009())
 	{
 		C_ShowActivity(author, buffer);
 	}
@@ -295,7 +295,7 @@ stock CShowActivityEx(author, const String:tag[], const String:message[], any:..
 	}
 
 
-	if (GetEngineVersion() == Engine_CSGO)
+	if (!IsSource2009())
 	{
 		C_ShowActivityEx(author, tag, buffer);
 	}
@@ -333,7 +333,7 @@ stock CShowActivityEx(author, const String:tag[], const String:message[], any:..
 	}
 
 
-	if (GetEngineVersion() == Engine_CSGO)
+	if (!IsSource2009())
 	{
 		C_ShowActivity2(author, tag, buffer);
 	}
@@ -361,7 +361,7 @@ stock CFormatColor(String:message[], maxlength, author=-1)
 	}
 
 
-	if (GetEngineVersion() == Engine_CSGO)
+	if (!IsSource2009())
 	{
 		if (author == 0)
 		{
@@ -403,5 +403,17 @@ stock CFixColors()
 		{
 			C_ReplaceColor(Color_Lightgreen, Color_Olive);
 		}
+	}
+}
+
+stock IsSource2009()
+{
+	if(GetEngineVersion() == Engine_CSS || GetEngineVersion() == Engine_HL2DM || GetEngineVersion() == Engine_DODS || GetEngineVersion() == Engine_TF2)
+	{
+		return true
+	}
+	else
+	{
+		return false;
 	}
 }
