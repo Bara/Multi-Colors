@@ -1,15 +1,11 @@
-language: cpp
-compiler: clang
+language: bash
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y g++-multilib
-
-install:
-  - wget http://www.sourcemod.net/smdrop/1.6/sourcemod-1.6.2-git4560-linux.tar.gz -O /tmp/sourcemod.tar.gz
-  - tar -xzvf /tmp/sourcemod.tar.gz
+  - sudo apt-get install -y g++-multilib lynx
 
 before_script:
+  - curl -L https://raw.githubusercontent.com/Bara20/SM_Hosties2/master/sourcemod.sh | bash
   - chmod +rx addons/sourcemod/scripting/spcomp
   - chmod +rx addons/sourcemod/scripting/compile.sh
   - cd addons/sourcemod/scripting/
