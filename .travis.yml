@@ -31,4 +31,4 @@ notifications:
     recipients:
       - webmaster@bara.in
     on_success: always
-    on_failure_ always
+    on_failure: always
