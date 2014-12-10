@@ -27,4 +27,4 @@ script:
   - ./spcomp multicolors_example.sp
 
 notifications:
-  email: false
+  email: true
