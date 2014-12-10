@@ -27,4 +27,8 @@ script:
   - ./spcomp multicolors_example.sp
 
 notifications:
-  email: true
+  email: 
+    recipients:
+      - webmaster@bara.in
+    on_success: always
+    on_failure_ always
