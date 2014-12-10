@@ -1,11 +1,24 @@
 language: bash
 
+env:
+  - VERSION=1.6
+  - VERSION=1.7
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: VERSION=1.7
+
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y g++-multilib lynx
+  - sudo apt-get install -y gcc-multilib lynx git lib32stdc++6
 
 before_script:
-  - curl -L https://raw.githubusercontent.com/Bara20/SM_Hosties2/master/sourcemod.sh | bash
+  - SMPATTERN="http:.*sourcemod-.*-linux.*"
+  - SMURL="http://www.sourcemod.net/smdrop/$VERSION/"
+  - SMPACKAGE=`lynx -dump "$SMURL" | egrep -o "$SMPATTERN" | tail -1`
+  - wget $SMPACKAGE
+  - tar -xzf $(basename "$SMPACKAGE")
   - chmod +rx addons/sourcemod/scripting/spcomp
   - chmod +rx addons/sourcemod/scripting/compile.sh
   - cd addons/sourcemod/scripting/
