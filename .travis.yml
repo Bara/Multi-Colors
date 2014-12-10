@@ -25,3 +25,6 @@ before_script:
   
 script:
   - ./spcomp multicolors_example.sp
+
+notifications:
+  email: false
