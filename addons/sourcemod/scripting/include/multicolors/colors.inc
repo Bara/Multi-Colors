@@ -355,7 +355,7 @@ stock C_Format(String:szMessage[], maxlength, author=NO_INDEX)
 	// On CS:GO set invisible precolor
 	if (GetEngineVersion() == Engine_CSGO) 
 	{
-		Format(szMessage, maxlength, " %s", szMessage);
+		Format(szMessage, maxlength, " \x01\x0B\x01%s", szMessage);
 	}
 	
 	/* If author was specified replace {teamcolor} tag */
