@@ -3,7 +3,9 @@
 #include <sourcemod>
 #include <multicolors>
 
-public Plugin:myinfo =
+#pragma newdecls required
+
+public Plugin myinfo =
 {
 	name = "Example plugin for multi colors",
 	author = "Bara",
@@ -12,14 +14,14 @@ public Plugin:myinfo =
 	url = "www.bara.in"
 }
 
-public OnPluginStart()
+public void OnPluginStart()
 {
 	RegConsoleCmd("sm_multicolors", Command_MultiColors);
 }
 
-public Action:Command_MultiColors(client, args)
+public Action Command_MultiColors(int client, int args)
 {
-	decl String:sName[MAX_NAME_LENGTH];
+	char sName[MAX_NAME_LENGTH];
 	GetClientName(client, sName, sizeof(sName));
 
 	CPrintToChat(client, "CPrintToChat - {darkblue}%s - {valve}%s", "Test", "Test");
