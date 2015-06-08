@@ -5,7 +5,7 @@ addons:
     - lib32stdc++6
 
 env:
-  - SOURCEMOD=1.7.0
+  - SOURCEMOD=1.7.2
 
 before_script:
   - FILE="sourcemod-$SOURCEMOD-linux.tar.gz"
