@@ -6,7 +6,7 @@ addons:
 
 before_script:
   - wget http://www.sourcemod.net/smdrop/1.8/sourcemod-1.8.0-git5450-linux.tar.gz
-  - tar -xzf $FILE
+  - tar -xzf sourcemod-1.8.0-git5450-linux.tar.gz
   - chmod +rx addons/sourcemod/scripting/spcomp
   - cd addons/sourcemod/scripting/
   
