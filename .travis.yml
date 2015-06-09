@@ -4,12 +4,8 @@ addons:
   apt_packages:
     - lib32stdc++6
 
-env:
-  - SOURCEMOD=1.7.2
-
 before_script:
-  - FILE="sourcemod-$SOURCEMOD-linux.tar.gz"
-  - wget http://www.gsptalk.com/mirror/sourcemod/$FILE
+  - wget http://www.sourcemod.net/smdrop/1.8/sourcemod-1.8.0-git5450-linux.tar.gz
   - tar -xzf $FILE
   - chmod +rx addons/sourcemod/scripting/spcomp
   - cd addons/sourcemod/scripting/
