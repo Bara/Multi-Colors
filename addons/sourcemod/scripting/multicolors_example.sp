@@ -3,8 +3,6 @@
 #include <sourcemod>
 #include <multicolors>
 
-#pragma newdecls required
-
 public Plugin myinfo =
 {
 	name = "Example plugin for multi colors",
