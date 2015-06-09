@@ -2,7 +2,7 @@
  *                                                                        *
  *                       Colored Chat Functions                           *
  *                   Author: exvel, Editor: Popoklopsi, Powerlord, Bara   *
- *                           Version: 1.2.4                               *
+ *                           Version: 2.0.0-MC                            *
  *                                                                        *
  **************************************************************************/
  
@@ -42,18 +42,18 @@ enum C_Colors
 }
 
 /* C_Colors' properties */
-new String:C_Tag[][] = {"{default}", "{darkred}", "{green}", "{lightgreen}", "{red}", "{blue}", "{olive}", "{lime}", "{lightred}", "{purple}", "{grey}", "{orange}", "{bluegrey}", "{lightblue}", "{darkblue}", "{grey2}", "{orchid}", "{lightred2}"};
-new String:C_TagCode[][] = {"\x01", "\x02", "\x04", "\x03", "\x03", "\x03", "\x05", "\x06", "\x07", "\x03", "\x08", "\x09", "\x0A", "\x0B", "\x0C", "\x0D", "\x0E", "\x0F"};
-new bool:C_TagReqSayText2[] = {false, false, false, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false};
-new bool:C_EventIsHooked = false;
-new bool:C_SkipList[MAXPLAYERS+1] = {false,...};
+char C_Tag[][] = {"{default}", "{darkred}", "{green}", "{lightgreen}", "{red}", "{blue}", "{olive}", "{lime}", "{lightred}", "{purple}", "{grey}", "{orange}", "{bluegrey}", "{lightblue}", "{darkblue}", "{grey2}", "{orchid}", "{lightred2}"};
+char C_TagCode[][] = {"\x01", "\x02", "\x04", "\x03", "\x03", "\x03", "\x05", "\x06", "\x07", "\x03", "\x08", "\x09", "\x0A", "\x0B", "\x0C", "\x0D", "\x0E", "\x0F"};
+bool C_TagReqSayText2[] = {false, false, false, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false};
+bool C_EventIsHooked = false;
+bool C_SkipList[MAXPLAYERS+1] = {false,...};
 
 /* Game default profile */
-new bool:C_Profile_Colors[] = {true, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
-new C_Profile_TeamIndex[] = {NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX};
-new bool:C_Profile_SayText2 = false;
+bool C_Profile_Colors[] = {true, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
+int C_Profile_TeamIndex[] = {NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX};
+bool C_Profile_SayText2 = false;
 
-static Handle:sm_show_activity = INVALID_HANDLE;
+static Handle sm_show_activity = INVALID_HANDLE;
 
 /**
  * Prints a message to a specific client in the chat area.
@@ -65,7 +65,7 @@ static Handle:sm_show_activity = INVALID_HANDLE;
  * 
  * On error/Errors:   If the client is not connected an error will be thrown.
  */
-stock C_PrintToChat(client, const String:szMessage[], any:...)
+stock void C_PrintToChat(int client, const char[] szMessage, any ...)
 {
 	if (client <= 0 || client > MaxClients)
 		ThrowError("Invalid client index %d", client);
@@ -73,15 +73,15 @@ stock C_PrintToChat(client, const String:szMessage[], any:...)
 	if (!IsClientInGame(client))
 		ThrowError("Client %d is not in game", client);
 	
-	decl String:szBuffer[MAX_MESSAGE_LENGTH];
-	decl String:szCMessage[MAX_MESSAGE_LENGTH];
+	char szBuffer[MAX_MESSAGE_LENGTH];
+	char szCMessage[MAX_MESSAGE_LENGTH];
 
 	SetGlobalTransTarget(client);
 	
 	Format(szBuffer, sizeof(szBuffer), "\x01%s", szMessage);
 	VFormat(szCMessage, sizeof(szCMessage), szBuffer, 3);
 	
-	new index = C_Format(szCMessage, sizeof(szCMessage));
+	int index = C_Format(szCMessage, sizeof(szCMessage));
 	
 	if (index == NO_INDEX)
 		PrintToChat(client, "%s", szCMessage);
@@ -101,9 +101,9 @@ stock C_PrintToChat(client, const String:szMessage[], any:...)
  * 
  * On error/Errors:   If the client is not connected or invalid.
  */
-stock C_ReplyToCommand(client, const String:szMessage[], any:...)
+stock void C_ReplyToCommand(int client, const char[] szMessage, any ...)
 {
-	decl String:szCMessage[MAX_MESSAGE_LENGTH];
+	char szCMessage[MAX_MESSAGE_LENGTH];
 	SetGlobalTransTarget(client);
 	VFormat(szCMessage, sizeof(szCMessage), szMessage, 3);
 	
@@ -136,9 +136,9 @@ stock C_ReplyToCommand(client, const String:szMessage[], any:...)
  * 
  * On error/Errors:   If the client is not connected or invalid.
  */
-stock C_ReplyToCommandEx(client, author, const String:szMessage[], any:...)
+stock void C_ReplyToCommandEx(int client, int author, const char[] szMessage, any ...)
 {
-	decl String:szCMessage[MAX_MESSAGE_LENGTH];
+	char szCMessage[MAX_MESSAGE_LENGTH];
 	SetGlobalTransTarget(client);
 	VFormat(szCMessage, sizeof(szCMessage), szMessage, 4);
 	
@@ -166,11 +166,11 @@ stock C_ReplyToCommandEx(client, author, const String:szMessage[], any:...)
  * @param szMessage   Message (formatting rules)
  * @return			  No return
  */
-stock C_PrintToChatAll(const String:szMessage[], any:...)
+stock void C_PrintToChatAll(const char[] szMessage, any ...)
 {
-	decl String:szBuffer[MAX_MESSAGE_LENGTH];
+	char szBuffer[MAX_MESSAGE_LENGTH];
 	
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsClientInGame(i) && !IsFakeClient(i) && !C_SkipList[i])
 		{
@@ -195,7 +195,7 @@ stock C_PrintToChatAll(const String:szMessage[], any:...)
  * 
  * On error/Errors:   If the client or author are not connected an error will be thrown.
  */
-stock C_PrintToChatEx(client, author, const String:szMessage[], any:...)
+stock void C_PrintToChatEx(int client, int author, const char[] szMessage, any ...)
 {
 	if (client <= 0 || client > MaxClients)
 		ThrowError("Invalid client index %d", client);
@@ -206,15 +206,15 @@ stock C_PrintToChatEx(client, author, const String:szMessage[], any:...)
 	if (author < 0 || author > MaxClients)
 		ThrowError("Invalid client index %d", author);
 	
-	decl String:szBuffer[MAX_MESSAGE_LENGTH];
-	decl String:szCMessage[MAX_MESSAGE_LENGTH];
+	char szBuffer[MAX_MESSAGE_LENGTH];
+	char szCMessage[MAX_MESSAGE_LENGTH];
 
 	SetGlobalTransTarget(client);
 	
 	Format(szBuffer, sizeof(szBuffer), "\x01%s", szMessage);
 	VFormat(szCMessage, sizeof(szCMessage), szBuffer, 4);
 	
-	new index = C_Format(szCMessage, sizeof(szCMessage), author);
+	int index = C_Format(szCMessage, sizeof(szCMessage), author);
 	
 	if (index == NO_INDEX)
 		PrintToChat(client, "%s", szCMessage);
@@ -232,7 +232,7 @@ stock C_PrintToChatEx(client, author, const String:szMessage[], any:...)
  * 
  * On error/Errors:   If the author is not connected an error will be thrown.
  */
-stock C_PrintToChatAllEx(author, const String:szMessage[], any:...)
+stock void C_PrintToChatAllEx(int author, const char[] szMessage, any ...)
 {
 	if (author < 0 || author > MaxClients)
 		ThrowError("Invalid client index %d", author);
@@ -240,9 +240,9 @@ stock C_PrintToChatAllEx(author, const String:szMessage[], any:...)
 	if (!IsClientInGame(author))
 		ThrowError("Client %d is not in game", author);
 	
-	decl String:szBuffer[MAX_MESSAGE_LENGTH];
+	char szBuffer[MAX_MESSAGE_LENGTH];
 	
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsClientInGame(i) && !IsFakeClient(i) && !C_SkipList[i])
 		{
@@ -262,9 +262,9 @@ stock C_PrintToChatAllEx(author, const String:szMessage[], any:...)
  * @param szMessage   String.
  * @return			  No return
  */
-stock C_RemoveTags(String:szMessage[], maxlength)
+stock void C_RemoveTags(char[] szMessage, int maxlength)
 {
-	for (new i = 0; i < MAX_COLORS; i++)
+	for (int i = 0; i < MAX_COLORS; i++)
 		ReplaceString(szMessage, maxlength, C_Tag[i], "", false);
 	
 	ReplaceString(szMessage, maxlength, "{teamcolor}", "", false);
@@ -276,7 +276,7 @@ stock C_RemoveTags(String:szMessage[], maxlength)
  * @param tag   		Color Tag.
  * @return			 	True when color is supported, otherwise false
  */
-stock C_ColorAllowed(C_Colors:color)
+stock bool C_ColorAllowed(C_Colors color)
 {
 	if (!C_EventIsHooked)
 	{
@@ -296,7 +296,7 @@ stock C_ColorAllowed(C_Colors:color)
  * @param newColor   		color to replace with.
  * @noreturn
  */
-stock C_ReplaceColor(C_Colors:color, C_Colors:newColor)
+stock void C_ReplaceColor(C_Colors color, C_Colors newColor)
 {
 	if (!C_EventIsHooked)
 	{
@@ -322,7 +322,7 @@ stock C_ReplaceColor(C_Colors:color, C_Colors:newColor)
  * @param client   Client index
  * @return		   No return
  */
-stock C_SkipNextClient(client)
+stock void C_SkipNextClient(int client)
 {
 	if (client <= 0 || client > MaxClients)
 		ThrowError("Invalid client index %d", client);
@@ -339,7 +339,7 @@ stock C_SkipNextClient(client)
  * 
  * On error/Errors:   If there is more then one team color is used an error will be thrown.
  */
-stock C_Format(String:szMessage[], maxlength, author=NO_INDEX)
+stock int C_Format(char[] szMessage, int maxlength, int author = NO_INDEX)
 {
 	/* Hook event for auto profile setup on map start */
 	if (!C_EventIsHooked)
@@ -350,12 +350,12 @@ stock C_Format(String:szMessage[], maxlength, author=NO_INDEX)
 		C_EventIsHooked = true;
 	}
 	
-	new iRandomPlayer = NO_INDEX;
+	int iRandomPlayer = NO_INDEX;
 	
 	// On CS:GO set invisible precolor
 	if (GetEngineVersion() == Engine_CSGO) 
 	{
-		Format(szMessage, maxlength, " \x01\x0B\x01%s", szMessage);
+		Format(szMessage, maxlength, " %s", szMessage);
 	}
 	
 	/* If author was specified replace {teamcolor} tag */
@@ -375,7 +375,7 @@ stock C_Format(String:szMessage[], maxlength, author=NO_INDEX)
 		ReplaceString(szMessage, maxlength, "{teamcolor}", "", false);
 	
 	/* For other color tags we need a loop */
-	for (new i = 0; i < MAX_COLORS; i++)
+	for (int i = 0; i < MAX_COLORS; i++)
 	{
 		/* If tag not found - skip */
 		if (StrContains(szMessage, C_Tag[i], false) == -1)
@@ -434,13 +434,13 @@ stock C_Format(String:szMessage[], maxlength, author=NO_INDEX)
  * @param color_team  Client team.
  * @return			  Client index or NO_PLAYER if no player found
  */
-stock C_FindRandomPlayerByTeam(color_team)
+stock int C_FindRandomPlayerByTeam(int color_team)
 {
 	if (color_team == SERVER_INDEX)
 		return 0;
 	else
 	{
-		for (new i = 1; i <= MaxClients; i++)
+		for (int i = 1; i <= MaxClients; i++)
 		{
 			if (IsClientInGame(i) && GetClientTeam(i) == color_team)
 				return i;
@@ -458,9 +458,9 @@ stock C_FindRandomPlayerByTeam(color_team)
  * @param szMessage   Message
  * @return			  No return.
  */
-stock C_SayText2(client, author, const String:szMessage[])
+stock void C_SayText2(int client, int author, const char[] szMessage)
 {
-	new Handle:hBuffer = StartMessageOne("SayText2", client, USERMSG_RELIABLE|USERMSG_BLOCKHOOKS);
+	Handle hBuffer = StartMessageOne("SayText2", client, USERMSG_RELIABLE|USERMSG_BLOCKHOOKS);
 	
 	if(GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available && GetUserMessageType() == UM_Protobuf) 
 	{
@@ -488,9 +488,9 @@ stock C_SayText2(client, author, const String:szMessage[])
  *
  * @return			  No return.
  */
-stock C_SetupProfile()
+stock void C_SetupProfile()
 {
-	new EngineVersion:engine = GetEngineVersion();
+	EngineVersion engine = GetEngineVersion();
 	
 	if (engine == Engine_CSS)
 	{
@@ -587,11 +587,11 @@ stock C_SetupProfile()
 	}
 }
 
-public Action:C_Event_MapStart(Handle:event, const String:name[], bool:dontBroadcast)
+public Action C_Event_MapStart(Event event, const char[] name, bool dontBroadcast)
 {
 	C_SetupProfile();
 	
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 		C_SkipList[i] = false;
 }
 
@@ -611,28 +611,28 @@ public Action:C_Event_MapStart(Handle:event, const String:name[], bool:dontBroad
  * @noreturn
  * @error
  */
-stock C_ShowActivity(client, const String:format[], any:...)
+stock int C_ShowActivity(int client, const char[] format, any ...)
 {
 	if (sm_show_activity == INVALID_HANDLE)
 		sm_show_activity = FindConVar("sm_show_activity");
 		
-	new String:tag[] = "[SM] ";
+	char tag[] = "[SM] ";
 	
-	decl String:szBuffer[MAX_MESSAGE_LENGTH];
-	//decl String:szCMessage[MAX_MESSAGE_LENGTH];
-	new value = GetConVarInt(sm_show_activity);
-	new ReplySource:replyto = GetCmdReplySource();
+	char szBuffer[MAX_MESSAGE_LENGTH];
+	//char szCMessage[MAX_MESSAGE_LENGTH];
+	int  value = GetConVarInt(sm_show_activity);
+	ReplySource replyto = GetCmdReplySource();
 	
-	new String:name[MAX_NAME_LENGTH] = "Console";
-	new String:sign[MAX_NAME_LENGTH] = "ADMIN";
-	new bool:display_in_chat = false;
+	char name[MAX_NAME_LENGTH] = "Console";
+	char sign[MAX_NAME_LENGTH] = "ADMIN";
+	bool display_in_chat = false;
 	if (client != 0)
 	{
 		if (client < 0 || client > MaxClients || !IsClientConnected(client))
 			ThrowError("Client index %d is invalid", client);
 		
 		GetClientName(client, name, sizeof(name));
-		new AdminId:id = GetUserAdmin(client);
+		AdminId id = GetUserAdmin(client);
 		if (id == INVALID_ADMIN_ID
 			|| !GetAdminFlag(id, Admin_Generic, Access_Effective))
 		{
@@ -664,7 +664,7 @@ stock C_ShowActivity(client, const String:format[], any:...)
 		return 1;
 	}
 	
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (!IsClientInGame(i)
 			|| IsFakeClient(i)
@@ -672,7 +672,7 @@ stock C_ShowActivity(client, const String:format[], any:...)
 		{
 			continue;
 		}
-		new AdminId:id = GetUserAdmin(i);
+		AdminId id = GetUserAdmin(i);
 		SetGlobalTransTarget(i);
 		if (id == INVALID_ADMIN_ID
 			|| !GetAdminFlag(id, Admin_Generic, Access_Effective))
@@ -680,7 +680,7 @@ stock C_ShowActivity(client, const String:format[], any:...)
 			/* Treat this as a normal user. */
 			if ((value & 1) | (value & 2))
 			{
-				new String:newsign[MAX_NAME_LENGTH];
+				char newsign[MAX_NAME_LENGTH];
 				newsign = sign;
 				if ((value & 2) || (i == client))
 				{
@@ -694,12 +694,12 @@ stock C_ShowActivity(client, const String:format[], any:...)
 		else
 		{
 			/* Treat this as an admin user */
-			new bool:is_root = GetAdminFlag(id, Admin_Root, Access_Effective);
+			bool is_root = GetAdminFlag(id, Admin_Root, Access_Effective);
 			if ((value & 4)
 				|| (value & 8)
 				|| ((value & 16) && is_root))
 			{
-				new String:newsign[MAX_NAME_LENGTH];
+				char newsign[MAX_NAME_LENGTH];
 				newsign = sign;
 				if ((value & 8) || ((value & 16) && is_root) || (i == client))
 				{
@@ -726,26 +726,26 @@ stock C_ShowActivity(client, const String:format[], any:...)
  * @noreturn
  * @error
  */
-stock C_ShowActivityEx(client, const String:tag[], const String:format[], any:...)
+stock int C_ShowActivityEx(int client, const char[] tag, const char[] format, any ...)
 {
 	if (sm_show_activity == INVALID_HANDLE)
 		sm_show_activity = FindConVar("sm_show_activity");
 		
-	decl String:szBuffer[MAX_MESSAGE_LENGTH];
-	//decl String:szCMessage[MAX_MESSAGE_LENGTH];
-	new value = GetConVarInt(sm_show_activity);
-	new ReplySource:replyto = GetCmdReplySource();
+	char szBuffer[MAX_MESSAGE_LENGTH];
+	//char szCMessage[MAX_MESSAGE_LENGTH];
+	int value = GetConVarInt(sm_show_activity);
+	ReplySource replyto = GetCmdReplySource();
 	
-	new String:name[MAX_NAME_LENGTH] = "Console";
-	new String:sign[MAX_NAME_LENGTH] = "ADMIN";
-	new bool:display_in_chat = false;
+	char name[MAX_NAME_LENGTH] = "Console";
+	char sign[MAX_NAME_LENGTH] = "ADMIN";
+	bool display_in_chat = false;
 	if (client != 0)
 	{
 		if (client < 0 || client > MaxClients || !IsClientConnected(client))
 			ThrowError("Client index %d is invalid", client);
 		
 		GetClientName(client, name, sizeof(name));
-		new AdminId:id = GetUserAdmin(client);
+		AdminId id = GetUserAdmin(client);
 		if (id == INVALID_ADMIN_ID
 			|| !GetAdminFlag(id, Admin_Generic, Access_Effective))
 		{
@@ -777,7 +777,7 @@ stock C_ShowActivityEx(client, const String:tag[], const String:format[], any:..
 		return 1;
 	}
 	
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (!IsClientInGame(i)
 			|| IsFakeClient(i)
@@ -785,7 +785,7 @@ stock C_ShowActivityEx(client, const String:tag[], const String:format[], any:..
 		{
 			continue;
 		}
-		new AdminId:id = GetUserAdmin(i);
+		AdminId id = GetUserAdmin(i);
 		SetGlobalTransTarget(i);
 		if (id == INVALID_ADMIN_ID
 			|| !GetAdminFlag(id, Admin_Generic, Access_Effective))
@@ -793,7 +793,7 @@ stock C_ShowActivityEx(client, const String:tag[], const String:format[], any:..
 			/* Treat this as a normal user. */
 			if ((value & 1) | (value & 2))
 			{
-				new String:newsign[MAX_NAME_LENGTH];
+				char newsign[MAX_NAME_LENGTH];
 				newsign = sign;
 				if ((value & 2) || (i == client))
 				{
@@ -807,12 +807,12 @@ stock C_ShowActivityEx(client, const String:tag[], const String:format[], any:..
 		else
 		{
 			/* Treat this as an admin user */
-			new bool:is_root = GetAdminFlag(id, Admin_Root, Access_Effective);
+			bool is_root = GetAdminFlag(id, Admin_Root, Access_Effective);
 			if ((value & 4)
 				|| (value & 8)
 				|| ((value & 16) && is_root))
 			{
-				new String:newsign[MAX_NAME_LENGTH];
+				char newsign[MAX_NAME_LENGTH];
 				newsign = sign;
 				if ((value & 8) || ((value & 16) && is_root) || (i == client))
 				{
@@ -841,25 +841,25 @@ stock C_ShowActivityEx(client, const String:tag[], const String:format[], any:..
  * @noreturn
  * @error
  */
-stock C_ShowActivity2(client, const String:tag[], const String:format[], any:...)
+stock int C_ShowActivity2(int client, const char[] tag, const char[] format, any ...)
 {
 	if (sm_show_activity == INVALID_HANDLE)
 		sm_show_activity = FindConVar("sm_show_activity");
 	
-	decl String:szBuffer[MAX_MESSAGE_LENGTH];
-	//decl String:szCMessage[MAX_MESSAGE_LENGTH];
-	new value = GetConVarInt(sm_show_activity);
-	// new ReplySource:replyto = GetCmdReplySource();
+	char szBuffer[MAX_MESSAGE_LENGTH];
+	//char szCMessage[MAX_MESSAGE_LENGTH];
+	int value = GetConVarInt(sm_show_activity);
+	// ReplySource replyto = GetCmdReplySource();
 	
-	new String:name[MAX_NAME_LENGTH] = "Console";
-	new String:sign[MAX_NAME_LENGTH] = "ADMIN";
+	char name[MAX_NAME_LENGTH] = "Console";
+	char sign[MAX_NAME_LENGTH] = "ADMIN";
 	if (client != 0)
 	{
 		if (client < 0 || client > MaxClients || !IsClientConnected(client))
 			ThrowError("Client index %d is invalid", client);
 		
 		GetClientName(client, name, sizeof(name));
-		new AdminId:id = GetUserAdmin(client);
+		AdminId id = GetUserAdmin(client);
 		if (id == INVALID_ADMIN_ID
 		|| !GetAdminFlag(id, Admin_Generic, Access_Effective))
 		{
@@ -889,7 +889,7 @@ stock C_ShowActivity2(client, const String:tag[], const String:format[], any:...
 		return 1;
 	}
 	
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (!IsClientInGame(i)
 		|| IsFakeClient(i)
@@ -897,7 +897,7 @@ stock C_ShowActivity2(client, const String:tag[], const String:format[], any:...
 		{
 			continue;
 		}
-		new AdminId:id = GetUserAdmin(i);
+		AdminId id = GetUserAdmin(i);
 		SetGlobalTransTarget(i);
 		if (id == INVALID_ADMIN_ID
 		|| !GetAdminFlag(id, Admin_Generic, Access_Effective))
@@ -905,7 +905,7 @@ stock C_ShowActivity2(client, const String:tag[], const String:format[], any:...
 			/* Treat this as a normal user. */
 			if ((value & 1) | (value & 2))
 			{
-				new String:newsign[MAX_NAME_LENGTH];
+				char newsign[MAX_NAME_LENGTH];
 				newsign = sign;
 				if ((value & 2))
 				{
@@ -919,12 +919,12 @@ stock C_ShowActivity2(client, const String:tag[], const String:format[], any:...
 		else
 		{
 			/* Treat this as an admin user */
-			new bool:is_root = GetAdminFlag(id, Admin_Root, Access_Effective);
+			bool is_root = GetAdminFlag(id, Admin_Root, Access_Effective);
 			if ((value & 4)
 			|| (value & 8)
 			|| ((value & 16) && is_root))
 			{
-				new String:newsign[MAX_NAME_LENGTH];
+				char newsign[MAX_NAME_LENGTH];
 				newsign = sign;
 				if ((value & 8) || ((value & 16) && is_root))
 				{
