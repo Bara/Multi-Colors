@@ -4,9 +4,6 @@
 #define _mutlicolors_included
 
 #include <multicolors/morecolors>
-
-#pragma newdecls required
-
 #include <multicolors/colors>
 
 /*

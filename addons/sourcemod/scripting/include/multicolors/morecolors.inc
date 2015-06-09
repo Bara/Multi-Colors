@@ -9,22 +9,22 @@
 
 #include <regex>
 
-#define MORE_COLORS_VERSION		"1.9.1pl2"
-#define MC_MAX_MESSAGE_LENGTH		256
-#define MAX_BUFFER_LENGTH		(MC_MAX_MESSAGE_LENGTH * 4)
+#define MORE_COLORS_VERSION     "2.0.0-MC"
+#define MC_MAX_MESSAGE_LENGTH   256
+#define MAX_BUFFER_LENGTH       (MC_MAX_MESSAGE_LENGTH * 4)
 
-#define MCOLOR_RED				0xFF4040
-#define MCOLOR_BLUE				0x99CCFF
-#define MCOLOR_GRAY				0xCCCCCC
-#define MCOLOR_GREEN				0x3EFF3E
+#define MCOLOR_RED              0xFF4040
+#define MCOLOR_BLUE             0x99CCFF
+#define MCOLOR_GRAY             0xCCCCCC
+#define MCOLOR_GREEN            0x3EFF3E
 
-#define MC_GAME_DODS				0
+#define MC_GAME_DODS           0
 
-new bool:MC_SkipList[MAXPLAYERS + 1];
-new Handle:MC_Trie;
-new MC_TeamColors[][] = {{0xCCCCCC, 0x4D7942, 0xFF4040}}; // Multi-dimensional array for games that don't support SayText2. First index is the game index (as defined by the GAME_ defines), second index is team. 0 = spectator, 1 = team1, 2 = team2
+bool MC_SkipList[MAXPLAYERS + 1];
+Handle MC_Trie;
+int MC_TeamColors[][] = {{0xCCCCCC, 0x4D7942, 0xFF4040}}; // Multi-dimensional array for games that don't support SayText2. First index is the game index (as defined by the GAME_ defines), second index is team. 0 = spectator, 1 = team1, 2 = team2
 
-static Handle:sm_show_activity = INVALID_HANDLE;
+static Handle sm_show_activity = INVALID_HANDLE;
 
 /**
  * Prints a message to a specific client in the chat area.
@@ -36,7 +36,7 @@ static Handle:sm_show_activity = INVALID_HANDLE;
  * 
  * On error/Errors:		If the client is not connected an error will be thrown.
  */
-stock MC_PrintToChat(client, const String:message[], any:...) {
+stock void MC_PrintToChat(int client, const char[] message, any ...) {
 	MC_CheckTrie();
 	if(client <= 0 || client > MaxClients) {
 		ThrowError("Invalid client index %i", client);
@@ -44,7 +44,7 @@ stock MC_PrintToChat(client, const String:message[], any:...) {
 	if(!IsClientInGame(client)) {
 		ThrowError("Client %i is not in game", client);
 	}
-	decl String:buffer[MAX_BUFFER_LENGTH], String:buffer2[MAX_BUFFER_LENGTH];
+	char buffer[MAX_BUFFER_LENGTH], buffer2[MAX_BUFFER_LENGTH];
 	SetGlobalTransTarget(client);
 	Format(buffer, sizeof(buffer), "\x01%s", message);
 	VFormat(buffer2, sizeof(buffer2), buffer, 3);
@@ -60,10 +60,10 @@ stock MC_PrintToChat(client, const String:message[], any:...) {
  * @param message		Message (formatting rules).
  * @noreturn
  */
-stock MC_PrintToChatAll(const String:message[], any:...) {
+stock void MC_PrintToChatAll(const char[] message, any ...) {
 	MC_CheckTrie();
-	decl String:buffer[MAX_BUFFER_LENGTH], String:buffer2[MAX_BUFFER_LENGTH];
-	for(new i = 1; i <= MaxClients; i++) {
+	char buffer[MAX_BUFFER_LENGTH], buffer2[MAX_BUFFER_LENGTH];
+	for(int i = 1; i <= MaxClients; i++) {
 		if(!IsClientInGame(i) || MC_SkipList[i]) {
 			MC_SkipList[i] = false;
 			continue;
@@ -87,7 +87,7 @@ stock MC_PrintToChatAll(const String:message[], any:...) {
  * 
  * On error/Errors:		If the client or author are not connected an error will be thrown
  */
-stock MC_PrintToChatEx(client, author, const String:message[], any:...) {
+stock void MC_PrintToChatEx(int client, int author, const char[] message, any ...) {
 	MC_CheckTrie();
 	if(client <= 0 || client > MaxClients) {
 		ThrowError("Invalid client index %i", client);
@@ -101,7 +101,7 @@ stock MC_PrintToChatEx(client, author, const String:message[], any:...) {
 	if(!IsClientInGame(author)) {
 		ThrowError("Client %i is not in game", author);
 	}
-	decl String:buffer[MAX_BUFFER_LENGTH], String:buffer2[MAX_BUFFER_LENGTH];
+	char buffer[MAX_BUFFER_LENGTH], buffer2[MAX_BUFFER_LENGTH];
 	SetGlobalTransTarget(client);
 	Format(buffer, sizeof(buffer), "\x01%s", message);
 	VFormat(buffer2, sizeof(buffer2), buffer, 4);
@@ -119,7 +119,7 @@ stock MC_PrintToChatEx(client, author, const String:message[], any:...) {
  * 
  * On error/Errors:   If the author is not connected an error will be thrown.
  */
-stock MC_PrintToChatAllEx(author, const String:message[], any:...) {
+stock void MC_PrintToChatAllEx(int author, const char[] message, any ...) {
 	MC_CheckTrie();
 	if(author <= 0 || author > MaxClients) {
 		ThrowError("Invalid client index %i", author);
@@ -127,8 +127,8 @@ stock MC_PrintToChatAllEx(author, const String:message[], any:...) {
 	if(!IsClientInGame(author)) {
 		ThrowError("Client %i is not in game", author);
 	}
-	decl String:buffer[MAX_BUFFER_LENGTH], String:buffer2[MAX_BUFFER_LENGTH];
-	for(new i = 1; i <= MaxClients; i++) {
+	char buffer[MAX_BUFFER_LENGTH], buffer2[MAX_BUFFER_LENGTH];
+	for(int i = 1; i <= MaxClients; i++) {
 		if(!IsClientInGame(i) || MC_SkipList[i]) {
 			MC_SkipList[i] = false;
 			continue;
@@ -148,20 +148,20 @@ stock MC_PrintToChatAllEx(author, const String:message[], any:...) {
  * @param message	Message to send
  * @noreturn
  */
-stock MC_SendMessage(client, const String:message[], author=0) {
+stock void MC_SendMessage(int client, const char[] message, int author = 0) {
 	if(author == 0) {
 		author = client;
 	}
-	decl String:buffer[MC_MAX_MESSAGE_LENGTH];
+	char buffer[MC_MAX_MESSAGE_LENGTH];
 	strcopy(buffer, sizeof(buffer), message);
-	new UserMsg:index = GetUserMessageId("SayText2");
+	UserMsg index = GetUserMessageId("SayText2");
 	if(index == INVALID_MESSAGE_ID) {
 		if(GetEngineVersion() == Engine_DODS) {
-			new team = GetClientTeam(author);
+			int team = GetClientTeam(author);
 			if(team == 0) {
 				ReplaceString(buffer, sizeof(buffer), "\x03", "\x04", false); // Unassigned gets green
 			} else {
-				decl String:temp[16];
+				char temp[16];
 				Format(temp, sizeof(temp), "\x07%06X", MC_TeamColors[MC_GAME_DODS][team - 1]);
 				ReplaceString(buffer, sizeof(buffer), "\x03", temp, false);
 			}
@@ -169,7 +169,7 @@ stock MC_SendMessage(client, const String:message[], author=0) {
 		PrintToChat(client, "%s", buffer);
 		return;
 	}
-	new Handle:buf = StartMessageOne("SayText2", client, USERMSG_RELIABLE|USERMSG_BLOCKHOOKS);
+	Handle buf = StartMessageOne("SayText2", client, USERMSG_RELIABLE|USERMSG_BLOCKHOOKS);
 	if(GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available && GetUserMessageType() == UM_Protobuf) {
 		PbSetInt(buf, "ent_idx", author);
 		PbSetBool(buf, "chat", true);
@@ -195,7 +195,7 @@ stock MC_SendMessage(client, const String:message[], author=0) {
  * @param client   Client index
  * @noreturn
  */
-stock MC_SkipNextClient(client) {
+stock void MC_SkipNextClient(int client) {
 	if(client <= 0 || client > MaxClients) {
 		ThrowError("Invalid client index %i", client);
 	}
@@ -207,7 +207,7 @@ stock MC_SkipNextClient(client) {
  * 
  * @return			No return
  */
-stock MC_CheckTrie() {
+stock void MC_CheckTrie() {
 	if(MC_Trie == INVALID_HANDLE) {
 		MC_Trie = MC_InitColorTrie();
 	}
@@ -224,7 +224,7 @@ stock MC_CheckTrie() {
  * 
  * On error/Errors:		If the client index passed for author is invalid or not in game.
  */
-stock MC_ReplaceColorCodes(String:buffer[], author=0, bool:removeTags=false, maxlen=MAX_BUFFER_LENGTH) {
+stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags = false, int maxlen = MAX_BUFFER_LENGTH) {
 	MC_CheckTrie();
 	if(!removeTags) {
 		ReplaceString(buffer, maxlen, "{default}", "\x01", false);
@@ -241,14 +241,16 @@ stock MC_ReplaceColorCodes(String:buffer[], author=0, bool:removeTags=false, max
 		}
 		ReplaceString(buffer, maxlen, "{teamcolor}", "\x03", false);
 	}
-	new cursor = 0;
-	new value;
-	decl String:tag[32], String:buff[32], String:output[maxlen];
+	int cursor = 0;
+	int value;
+	char tag[32], buff[32]; 
+	char[] output = new char[maxlen];
+	
 	strcopy(output, maxlen, buffer);
 	// Since the string's size is going to be changing, output will hold the replaced string and we'll search buffer
 	
-	new Handle:regex = CompileRegex("{[a-zA-Z0-9]+}");
-	for(new i = 0; i < 1000; i++) { // The RegEx extension is quite flaky, so we have to loop here :/. This loop is supposed to be infinite and broken by return, but conditions have been added to be safe.
+	Handle regex = CompileRegex("{[a-zA-Z0-9]+}");
+	for(int i = 0; i < 1000; i++) { // The RegEx extension is quite flaky, so we have to loop here :/. This loop is supposed to be infinite and broken by return, but conditions have been added to be safe.
 		if(MatchRegex(regex, buffer[cursor]) < 1) {
 			CloseHandle(regex);
 			strcopy(buffer, maxlen, output);
@@ -285,8 +287,8 @@ stock MC_ReplaceColorCodes(String:buffer[], author=0, bool:removeTags=false, max
  * @param numChars		Number of characters to return, or 0 for the end of the string
  * @noreturn
  */
-stock CSubString(const String:input[], String:output[], maxlen, start, numChars=0) {
-	new i = 0;
+stock void CSubString(const char[] input, char[] output, int maxlen, int start, int numChars = 0) {
+	int i = 0;
 	for(;;) {
 		if(i == maxlen - 1 || i >= numChars || input[start + i] == '\0') {
 			output[i] = '\0';
@@ -303,9 +305,9 @@ stock CSubString(const String:input[], String:output[], maxlen, start, numChars=
  * @param buffer		String to convert
  * @noreturn
  */
-stock MC_StrToLower(String:buffer[]) {
-	new len = strlen(buffer);
-	for(new i = 0; i < len; i++) {
+stock void MC_StrToLower(char[] buffer) {
+	int len = strlen(buffer);
+	for(int i = 0; i < len; i++) {
 		buffer[i] = CharToLower(buffer[i]);
 	}
 }
@@ -317,13 +319,13 @@ stock MC_StrToLower(String:buffer[]) {
  * @param color			Hexadecimal representation of the color (0xRRGGBB)
  * @return				True if color was added successfully, false if a color already exists with that name
  */
-stock bool:MC_AddColor(const String:name[], color) {
+stock bool MC_AddColor(const char[] name, int color) {
 	MC_CheckTrie();
-	new value;
+	int value;
 	if(GetTrieValue(MC_Trie, name, value)) {
 		return false;
 	}
-	decl String:newName[64];
+	char newName[64];
 	strcopy(newName, sizeof(newName), name);
 	MC_StrToLower(newName);
 	SetTrieValue(MC_Trie, newName, color);
@@ -337,7 +339,7 @@ stock bool:MC_AddColor(const String:name[], color) {
  * @param maxlen		Maximum buffer length
  * @noreturn
  */
-stock MC_RemoveTags(String:message[], maxlen) {
+stock void MC_RemoveTags(char[] message, int maxlen) {
 	MC_ReplaceColorCodes(message, 0, true, maxlen);
 }
 
@@ -348,8 +350,8 @@ stock MC_RemoveTags(String:message[], maxlen) {
  * @param message		Message (formatting rules)
  * @noreturn
  */
-stock MC_ReplyToCommand(client, const String:message[], any:...) {
-	decl String:buffer[MAX_BUFFER_LENGTH];
+stock void MC_ReplyToCommand(int client, const char[] message, any ...) {
+	char buffer[MAX_BUFFER_LENGTH];
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 3);
 	if(GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
@@ -368,8 +370,8 @@ stock MC_ReplyToCommand(client, const String:message[], any:...) {
  * @param message		Message (formatting rules)
  * @noreturn
  */
-stock MC_ReplyToCommandEx(client, author, const String:message[], any:...) {
-	decl String:buffer[MAX_BUFFER_LENGTH];
+stock void MC_ReplyToCommandEx(int client, int author, const char[] message, any ...) {
+	char buffer[MAX_BUFFER_LENGTH];
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 4);
 	if(GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
@@ -396,28 +398,28 @@ stock MC_ReplyToCommandEx(client, author, const String:message[], any:...) {
  * @noreturn
  * @error
  */
-stock MC_ShowActivity(client, const String:format[], any:...)
+stock int MC_ShowActivity(int client, const char[] format, any ...)
 {
 	if (sm_show_activity == INVALID_HANDLE)
 		sm_show_activity = FindConVar("sm_show_activity");
 		
-	new String:tag[] = "[SM] ";
+	char tag[] = "[SM] ";
 	
-	decl String:szBuffer[MC_MAX_MESSAGE_LENGTH];
-	//decl String:szCMessage[MC_MAX_MESSAGE_LENGTH];
-	new value = GetConVarInt(sm_show_activity);
-	new ReplySource:replyto = GetCmdReplySource();
+	char szBuffer[MC_MAX_MESSAGE_LENGTH];
+	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
+	int value = GetConVarInt(sm_show_activity);
+	ReplySource replyto = GetCmdReplySource();
 	
-	new String:name[MAX_NAME_LENGTH] = "Console";
-	new String:sign[MAX_NAME_LENGTH] = "ADMIN";
-	new bool:display_in_chat = false;
+	char name[MAX_NAME_LENGTH] = "Console";
+	char sign[MAX_NAME_LENGTH] = "ADMIN";
+	bool display_in_chat = false;
 	if (client != 0)
 	{
 		if (client < 0 || client > MaxClients || !IsClientConnected(client))
 			ThrowError("Client index %d is invalid", client);
 		
 		GetClientName(client, name, sizeof(name));
-		new AdminId:id = GetUserAdmin(client);
+		AdminId id = GetUserAdmin(client);
 		if (id == INVALID_ADMIN_ID
 			|| !GetAdminFlag(id, Admin_Generic, Access_Effective))
 		{
@@ -449,7 +451,7 @@ stock MC_ShowActivity(client, const String:format[], any:...)
 		return 1;
 	}
 	
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (!IsClientInGame(i)
 			|| IsFakeClient(i)
@@ -457,7 +459,7 @@ stock MC_ShowActivity(client, const String:format[], any:...)
 		{
 			continue;
 		}
-		new AdminId:id = GetUserAdmin(i);
+		AdminId id = GetUserAdmin(i);
 		SetGlobalTransTarget(i);
 		if (id == INVALID_ADMIN_ID
 			|| !GetAdminFlag(id, Admin_Generic, Access_Effective))
@@ -465,7 +467,7 @@ stock MC_ShowActivity(client, const String:format[], any:...)
 			/* Treat this as a normal user. */
 			if ((value & 1) | (value & 2))
 			{
-				new String:newsign[MAX_NAME_LENGTH];
+				char newsign[MAX_NAME_LENGTH];
 				newsign = sign;
 				if ((value & 2) || (i == client))
 				{
@@ -479,12 +481,12 @@ stock MC_ShowActivity(client, const String:format[], any:...)
 		else
 		{
 			/* Treat this as an admin user */
-			new bool:is_root = GetAdminFlag(id, Admin_Root, Access_Effective);
+			bool is_root = GetAdminFlag(id, Admin_Root, Access_Effective);
 			if ((value & 4)
 				|| (value & 8)
 				|| ((value & 16) && is_root))
 			{
-				new String:newsign[MAX_NAME_LENGTH];
+				char newsign[MAX_NAME_LENGTH];
 				newsign = sign;
 				if ((value & 8) || ((value & 16) && is_root) || (i == client))
 				{
@@ -511,26 +513,26 @@ stock MC_ShowActivity(client, const String:format[], any:...)
  * @noreturn
  * @error
  */
-stock MC_ShowActivityEx(client, const String:tag[], const String:format[], any:...)
+stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, any ...)
 {
 	if (sm_show_activity == INVALID_HANDLE)
 		sm_show_activity = FindConVar("sm_show_activity");
 		
-	decl String:szBuffer[MC_MAX_MESSAGE_LENGTH];
-	//decl String:szCMessage[MC_MAX_MESSAGE_LENGTH];
-	new value = GetConVarInt(sm_show_activity);
-	new ReplySource:replyto = GetCmdReplySource();
+	char szBuffer[MC_MAX_MESSAGE_LENGTH];
+	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
+	int value = GetConVarInt(sm_show_activity);
+	ReplySource replyto = GetCmdReplySource();
 	
-	new String:name[MAX_NAME_LENGTH] = "Console";
-	new String:sign[MAX_NAME_LENGTH] = "ADMIN";
-	new bool:display_in_chat = false;
+	char name[MAX_NAME_LENGTH] = "Console";
+	char sign[MAX_NAME_LENGTH] = "ADMIN";
+	bool display_in_chat = false;
 	if (client != 0)
 	{
 		if (client < 0 || client > MaxClients || !IsClientConnected(client))
 			ThrowError("Client index %d is invalid", client);
 		
 		GetClientName(client, name, sizeof(name));
-		new AdminId:id = GetUserAdmin(client);
+		AdminId id = GetUserAdmin(client);
 		if (id == INVALID_ADMIN_ID
 			|| !GetAdminFlag(id, Admin_Generic, Access_Effective))
 		{
@@ -562,7 +564,7 @@ stock MC_ShowActivityEx(client, const String:tag[], const String:format[], any:.
 		return 1;
 	}
 	
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (!IsClientInGame(i)
 			|| IsFakeClient(i)
@@ -570,7 +572,7 @@ stock MC_ShowActivityEx(client, const String:tag[], const String:format[], any:.
 		{
 			continue;
 		}
-		new AdminId:id = GetUserAdmin(i);
+		AdminId id = GetUserAdmin(i);
 		SetGlobalTransTarget(i);
 		if (id == INVALID_ADMIN_ID
 			|| !GetAdminFlag(id, Admin_Generic, Access_Effective))
@@ -578,7 +580,7 @@ stock MC_ShowActivityEx(client, const String:tag[], const String:format[], any:.
 			/* Treat this as a normal user. */
 			if ((value & 1) | (value & 2))
 			{
-				new String:newsign[MAX_NAME_LENGTH];
+				char newsign[MAX_NAME_LENGTH];
 				newsign = sign;
 				if ((value & 2) || (i == client))
 				{
@@ -592,12 +594,12 @@ stock MC_ShowActivityEx(client, const String:tag[], const String:format[], any:.
 		else
 		{
 			/* Treat this as an admin user */
-			new bool:is_root = GetAdminFlag(id, Admin_Root, Access_Effective);
+			bool is_root = GetAdminFlag(id, Admin_Root, Access_Effective);
 			if ((value & 4)
 				|| (value & 8)
 				|| ((value & 16) && is_root))
 			{
-				new String:newsign[MAX_NAME_LENGTH];
+				char newsign[MAX_NAME_LENGTH];
 				newsign = sign;
 				if ((value & 8) || ((value & 16) && is_root) || (i == client))
 				{
@@ -626,25 +628,25 @@ stock MC_ShowActivityEx(client, const String:tag[], const String:format[], any:.
  * @noreturn
  * @error
  */
-stock MC_ShowActivity2(client, const String:tag[], const String:format[], any:...)
+stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, any ...)
 {
 	if (sm_show_activity == INVALID_HANDLE)
 		sm_show_activity = FindConVar("sm_show_activity");
 	
-	decl String:szBuffer[MC_MAX_MESSAGE_LENGTH];
-	//decl String:szCMessage[MC_MAX_MESSAGE_LENGTH];
-	new value = GetConVarInt(sm_show_activity);
-	// new ReplySource:replyto = GetCmdReplySource();
+	char szBuffer[MC_MAX_MESSAGE_LENGTH];
+	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
+	int value = GetConVarInt(sm_show_activity);
+	// ReplySource replyto = GetCmdReplySource();
 	
-	new String:name[MAX_NAME_LENGTH] = "Console";
-	new String:sign[MAX_NAME_LENGTH] = "ADMIN";
+	char name[MAX_NAME_LENGTH] = "Console";
+	char sign[MAX_NAME_LENGTH] = "ADMIN";
 	if (client != 0)
 	{
 		if (client < 0 || client > MaxClients || !IsClientConnected(client))
 			ThrowError("Client index %d is invalid", client);
 		
 		GetClientName(client, name, sizeof(name));
-		new AdminId:id = GetUserAdmin(client);
+		AdminId id = GetUserAdmin(client);
 		if (id == INVALID_ADMIN_ID
 		|| !GetAdminFlag(id, Admin_Generic, Access_Effective))
 		{
@@ -674,7 +676,7 @@ stock MC_ShowActivity2(client, const String:tag[], const String:format[], any:..
 		return 1;
 	}
 	
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (!IsClientInGame(i)
 		|| IsFakeClient(i)
@@ -682,7 +684,7 @@ stock MC_ShowActivity2(client, const String:tag[], const String:format[], any:..
 		{
 			continue;
 		}
-		new AdminId:id = GetUserAdmin(i);
+		AdminId id = GetUserAdmin(i);
 		SetGlobalTransTarget(i);
 		if (id == INVALID_ADMIN_ID
 		|| !GetAdminFlag(id, Admin_Generic, Access_Effective))
@@ -690,7 +692,7 @@ stock MC_ShowActivity2(client, const String:tag[], const String:format[], any:..
 			/* Treat this as a normal user. */
 			if ((value & 1) | (value & 2))
 			{
-				new String:newsign[MAX_NAME_LENGTH];
+				char newsign[MAX_NAME_LENGTH];
 				newsign = sign;
 				if ((value & 2))
 				{
@@ -704,12 +706,12 @@ stock MC_ShowActivity2(client, const String:tag[], const String:format[], any:..
 		else
 		{
 			/* Treat this as an admin user */
-			new bool:is_root = GetAdminFlag(id, Admin_Root, Access_Effective);
+			bool is_root = GetAdminFlag(id, Admin_Root, Access_Effective);
 			if ((value & 4)
 			|| (value & 8)
 			|| ((value & 16) && is_root))
 			{
-				new String:newsign[MAX_NAME_LENGTH];
+				char newsign[MAX_NAME_LENGTH];
 				newsign = sign;
 				if ((value & 8) || ((value & 16) && is_root))
 				{
@@ -731,9 +733,9 @@ stock MC_ShowActivity2(client, const String:tag[], const String:format[], any:..
  * @param color			The color name to check
  * @return				True if the color exists, false otherwise
  */
-stock bool:CColorExists(const String:color[]) {
+stock bool CColorExists(const char[] color) {
 	MC_CheckTrie();
-	new temp;
+	int temp;
 	return GetTrieValue(MC_Trie, color, temp);
 }
 
@@ -744,14 +746,14 @@ stock bool:CColorExists(const String:color[]) {
  * @return				Client's team color in hexadecimal, or green if unknown
  * On error/Errors:		If the client index passed is invalid or not in game.
  */
-stock CGetTeamColor(client) {
+stock int CGetTeamColor(int client) {
 	if(client <= 0 || client > MaxClients) {
 		ThrowError("Invalid client index %i", client);
 	}
 	if(!IsClientInGame(client)) {
 		ThrowError("Client %i is not in game", client);
 	}
-	new value;
+	int value;
 	switch(GetClientTeam(client)) {
 		case 1: {
 			value = MCOLOR_GRAY;
@@ -769,8 +771,8 @@ stock CGetTeamColor(client) {
 	return value;
 }
 
-stock Handle:MC_InitColorTrie() {
-	new Handle:hTrie = CreateTrie();
+stock Handle MC_InitColorTrie() {
+	Handle hTrie = CreateTrie();
 	SetTrieValue(hTrie, "aliceblue", 0xF0F8FF);
 	SetTrieValue(hTrie, "allies", 0x4D7942); // same as Allies team in DoD:S
 	SetTrieValue(hTrie, "ancient", 0xEB4B4B); // same as Ancient item rarity in Dota 2
