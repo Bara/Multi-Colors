@@ -53,7 +53,7 @@ bool C_Profile_Colors[] = {true, false, true, false, false, false, false, false,
 int C_Profile_TeamIndex[] = {NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX, NO_INDEX};
 bool C_Profile_SayText2 = false;
 
-static Handle sm_show_activity = INVALID_HANDLE;
+static Handle sm_show_activity = null;
 
 /**
  * Prints a message to a specific client in the chat area.
@@ -613,7 +613,7 @@ public Action C_Event_MapStart(Event event, const char[] name, bool dontBroadcas
  */
 stock int C_ShowActivity(int client, const char[] format, any ...)
 {
-	if (sm_show_activity == INVALID_HANDLE)
+	if (sm_show_activity == null)
 		sm_show_activity = FindConVar("sm_show_activity");
 		
 	char tag[] = "[SM] ";
@@ -728,7 +728,7 @@ stock int C_ShowActivity(int client, const char[] format, any ...)
  */
 stock int C_ShowActivityEx(int client, const char[] tag, const char[] format, any ...)
 {
-	if (sm_show_activity == INVALID_HANDLE)
+	if (sm_show_activity == null)
 		sm_show_activity = FindConVar("sm_show_activity");
 		
 	char szBuffer[MAX_MESSAGE_LENGTH];
@@ -843,7 +843,7 @@ stock int C_ShowActivityEx(int client, const char[] tag, const char[] format, an
  */
 stock int C_ShowActivity2(int client, const char[] tag, const char[] format, any ...)
 {
-	if (sm_show_activity == INVALID_HANDLE)
+	if (sm_show_activity == null)
 		sm_show_activity = FindConVar("sm_show_activity");
 	
 	char szBuffer[MAX_MESSAGE_LENGTH];
