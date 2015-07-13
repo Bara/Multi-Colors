@@ -3,16 +3,11 @@
 #endif
 #define _mutlicolors_included
 
+#define MuCo_VERSION "2.0.0"
+#define MuCo_LoopClients(%1) for(int %1 = 1; %1 <= MaxClients; %1++)
+
 #include <multicolors/morecolors>
 #include <multicolors/colors>
-
-/*
-
-	Changelog:
-		- multicolors.inc ported
-
-*/
-#define MuCo_VERSION "2.0.0"
 
 /*
 *

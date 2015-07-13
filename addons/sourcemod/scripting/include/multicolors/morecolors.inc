@@ -63,8 +63,8 @@ stock void MC_PrintToChat(int client, const char[] message, any ...) {
 stock void MC_PrintToChatAll(const char[] message, any ...) {
 	MC_CheckTrie();
 	char buffer[MAX_BUFFER_LENGTH], buffer2[MAX_BUFFER_LENGTH];
-	for(int i = 1; i <= MaxClients; i++) {
-		if(!IsClientInGame(i) || MC_SkipList[i]) {
+	MuCo_LoopClients(i) {
+		if(i == 0 || !IsClientInGame(i) || MC_SkipList[i]) {
 			MC_SkipList[i] = false;
 			continue;
 		}
@@ -128,8 +128,8 @@ stock void MC_PrintToChatAllEx(int author, const char[] message, any ...) {
 		ThrowError("Client %i is not in game", author);
 	}
 	char buffer[MAX_BUFFER_LENGTH], buffer2[MAX_BUFFER_LENGTH];
-	for(int i = 1; i <= MaxClients; i++) {
-		if(!IsClientInGame(i) || MC_SkipList[i]) {
+	MuCo_LoopClients(i) {
+		if(i == 0 || !IsClientInGame(i) || MC_SkipList[i]) {
 			MC_SkipList[i] = false;
 			continue;
 		}
@@ -451,9 +451,10 @@ stock int MC_ShowActivity(int client, const char[] format, any ...)
 		return 1;
 	}
 	
-	for (int i = 1; i <= MaxClients; i++)
+	MuCo_LoopClients(i)
 	{
-		if (!IsClientInGame(i)
+		if (i == 0
+			|| !IsClientInGame(i)
 			|| IsFakeClient(i)
 			|| (display_in_chat && i == client))
 		{
@@ -564,9 +565,10 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 		return 1;
 	}
 	
-	for (int i = 1; i <= MaxClients; i++)
+	MuCo_LoopClients(i)
 	{
-		if (!IsClientInGame(i)
+		if (i == 0
+			|| !IsClientInGame(i)
 			|| IsFakeClient(i)
 			|| (display_in_chat && i == client))
 		{
@@ -676,11 +678,12 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 		return 1;
 	}
 	
-	for (int i = 1; i <= MaxClients; i++)
+	MuCo_LoopClients(i)
 	{
-		if (!IsClientInGame(i)
-		|| IsFakeClient(i)
-		|| i == client)
+		if (i == 0
+			|| !IsClientInGame(i)
+			|| IsFakeClient(i)
+			|| i == client)
 		{
 			continue;
 		}

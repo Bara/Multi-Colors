@@ -170,9 +170,9 @@ stock void C_PrintToChatAll(const char[] szMessage, any ...)
 {
 	char szBuffer[MAX_MESSAGE_LENGTH];
 	
-	for (int i = 1; i <= MaxClients; i++)
+	MuCo_LoopClients(i)
 	{
-		if (IsClientInGame(i) && !IsFakeClient(i) && !C_SkipList[i])
+		if (i > 0 && IsClientInGame(i) && !IsFakeClient(i) && !C_SkipList[i])
 		{
 			SetGlobalTransTarget(i);
 			VFormat(szBuffer, sizeof(szBuffer), szMessage, 2);
@@ -242,9 +242,9 @@ stock void C_PrintToChatAllEx(int author, const char[] szMessage, any ...)
 	
 	char szBuffer[MAX_MESSAGE_LENGTH];
 	
-	for (int i = 1; i <= MaxClients; i++)
+	MuCo_LoopClients(i)
 	{
-		if (IsClientInGame(i) && !IsFakeClient(i) && !C_SkipList[i])
+		if (i > 0 && IsClientInGame(i) && !IsFakeClient(i) && !C_SkipList[i])
 		{
 			SetGlobalTransTarget(i);
 			VFormat(szBuffer, sizeof(szBuffer), szMessage, 3);
@@ -440,9 +440,9 @@ stock int C_FindRandomPlayerByTeam(int color_team)
 		return 0;
 	else
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		MuCo_LoopClients(i)
 		{
-			if (IsClientInGame(i) && GetClientTeam(i) == color_team)
+			if (i > 0 && IsClientInGame(i) && GetClientTeam(i) == color_team)
 				return i;
 		}	
 	}
@@ -591,7 +591,7 @@ public Action C_Event_MapStart(Event event, const char[] name, bool dontBroadcas
 {
 	C_SetupProfile();
 	
-	for (int i = 1; i <= MaxClients; i++)
+	MuCo_LoopClients(i)
 		C_SkipList[i] = false;
 }
 
@@ -664,9 +664,10 @@ stock int C_ShowActivity(int client, const char[] format, any ...)
 		return 1;
 	}
 	
-	for (int i = 1; i <= MaxClients; i++)
+	MuCo_LoopClients(i)
 	{
-		if (!IsClientInGame(i)
+		if (i == 0
+			|| !IsClientInGame(i)
 			|| IsFakeClient(i)
 			|| (display_in_chat && i == client))
 		{
@@ -777,9 +778,10 @@ stock int C_ShowActivityEx(int client, const char[] tag, const char[] format, an
 		return 1;
 	}
 	
-	for (int i = 1; i <= MaxClients; i++)
+	MuCo_LoopClients(i)
 	{
-		if (!IsClientInGame(i)
+		if (i == 0
+			|| !IsClientInGame(i)
 			|| IsFakeClient(i)
 			|| (display_in_chat && i == client))
 		{
@@ -889,11 +891,12 @@ stock int C_ShowActivity2(int client, const char[] tag, const char[] format, any
 		return 1;
 	}
 	
-	for (int i = 1; i <= MaxClients; i++)
+	MuCo_LoopClients(i)
 	{
-		if (!IsClientInGame(i)
-		|| IsFakeClient(i)
-		|| i == client)
+		if (i == 0
+			|| !IsClientInGame(i)
+			|| IsFakeClient(i)
+			|| i == client)
 		{
 			continue;
 		}
