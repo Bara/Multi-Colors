@@ -76,8 +76,37 @@ stock void CPrintToChatAll(const char[] message, any ...)
 		MC_PrintToChatAll(buffer);
 }
 
+/**
+ * Writes a message to all of a client's observers.
+ *
+ * @param target 	Client index.
+ * @param message	Message (formatting rules).
+ *
+ * @noreturn
+ */
+stock void CPrintToChatObservers(int target, const char[] message, any ...){
+	char buffer[MAX_MESSAGE_LENGTH];
+	VFormat(buffer, sizeof(buffer), message, 3);
 
-
+	if (!g_bCFixColors)
+		CFixColors();
+	
+	CPrintToChat(client, buffer);
+	
+ 	int clients[MaxClients];
+ 	int observercount;
+ 
+ 	for(int client = 1; client <= MaxClients; client++){
+ 		if(IsClientInGame(client) && !IsPlayerAlive(client) && !IsFakeClient(client)){
+ 			int observee 		= GetEntPropEnt(client, Prop_Send, "m_hObserverTarget");
+ 			int ObserverMode 	= GetEntProp(client, Prop_Send, "m_iObserverMode");
+ 
+ 			if(observee == target && (ObserverMode == 4 || ObserverMode == 5)){
+ 				CPrintToChat(client, buffer);
+ 			}
+ 		}
+ 	}
+}
 
 
 /**
@@ -104,8 +133,6 @@ stock void CPrintToChatEx(int client, int author, const char[] message, any ...)
 		MC_PrintToChatEx(client, author, buffer);
 }
 
-
-
 /**
  * Writes a message to all clients with the correct stock for the game.
  *
@@ -128,7 +155,38 @@ stock void CPrintToChatAllEx(int author, const char[] message, any ...)
 		MC_PrintToChatAllEx(author, buffer);
 }
 
+/**
+ * Writes a message to all of a client's observers with the correct
+ * game stock.
+ *
+ * @param target 	Client index.
+ * @param message	Message (formatting rules).
+ *
+ * @noreturn
+ */
+stock void CPrintToChatObserversEx(int target, const char[] message, any ...){
+	char buffer[MAX_MESSAGE_LENGTH];
+	VFormat(buffer, sizeof(buffer), message, 3);
 
+	if (!g_bCFixColors)
+		CFixColors();
+	
+	CPrintToChat(client, buffer);
+	
+ 	int clients[MaxClients];
+ 	int observercount;
+ 
+ 	for(int client = 1; client <= MaxClients; client++){
+ 		if(IsClientInGame(client) && !IsPlayerAlive(client) && !IsFakeClient(client)){
+ 			int observee 		= GetEntPropEnt(client, Prop_Send, "m_hObserverTarget");
+ 			int ObserverMode 	= GetEntProp(client, Prop_Send, "m_iObserverMode");
+ 
+ 			if(observee == target && (ObserverMode == 4 || ObserverMode == 5)){
+ 				CPrintToChatEx(client, buffer);
+ 			}
+ 		}
+ 	}
+}
 
 
 /**
