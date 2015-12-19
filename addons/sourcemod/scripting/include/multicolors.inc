@@ -3,7 +3,7 @@
 #endif
 #define _mutlicolors_included
 
-#define MuCo_VERSION "2.0.0"
+#define MuCo_VERSION "2.0.1"
 #define MuCo_LoopClients(%1) for(int %1 = 1; %1 <= MaxClients; %1++)
 
 #include <multicolors/morecolors>
@@ -298,6 +298,27 @@ stock void CFormatColor(char[] message, int maxlength, int author = -1)
 
 
 /**
+ * Removes color tags from a message
+ * 
+ * @param message		Message to remove tags from
+ * @param maxlen		Maximum buffer length
+ * @noreturn
+ */
+stock void CRemoveTags(char[] message, int maxlen)
+{
+	if (!IsSource2009())
+	{
+		C_RemoveTags(message, maxlen);
+	}
+	else
+	{
+		MC_RemoveTags(message, maxlen);
+	}
+}
+
+
+
+/**
  * Fixes missing Lightgreen color.
  *
  * @noreturn
@@ -319,6 +340,8 @@ stock void CFixColors()
 stock bool IsSource2009()
 {
 	if(GetEngineVersion() == Engine_CSS || GetEngineVersion() == Engine_HL2DM || GetEngineVersion() == Engine_DODS || GetEngineVersion() == Engine_TF2)
+	{
 		return true;
+	}
 	return false;
 }
