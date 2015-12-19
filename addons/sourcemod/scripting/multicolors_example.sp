@@ -46,4 +46,7 @@ public Action Command_MultiColors(int client, int args)
 	CPrintToChat(client, "Name (Before CFormatColor): %s", sName);
 	CRemoveTags(sName, MAX_NAME_LENGTH);
 	CPrintToChat(client, "Name (After CFormatColor): %s", sName);
+	
+	CPrintToChatObservers(client, "CPrintToChatObservers - {darkblue}%s - {darkred}%s", "Test", "Test");
+	CPrintToChatObserversEx(client, "CPrintToChatObserversEx - {darkblue}%s - {darkred}%s", "Test", "Test");
 }

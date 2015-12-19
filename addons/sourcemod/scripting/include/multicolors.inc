@@ -84,7 +84,8 @@ stock void CPrintToChatAll(const char[] message, any ...)
  *
  * @noreturn
  */
-stock void CPrintToChatObservers(int target, const char[] message, any ...){
+stock void CPrintToChatObservers(int target, const char[] message, any ...)
+{
 	char buffer[MAX_MESSAGE_LENGTH];
 	VFormat(buffer, sizeof(buffer), message, 3);
 
@@ -96,12 +97,15 @@ stock void CPrintToChatObservers(int target, const char[] message, any ...){
  	int clients[MaxClients];
  	int observercount;
  
- 	for(int client = 1; client <= MaxClients; client++){
- 		if(IsClientInGame(client) && !IsPlayerAlive(client) && !IsFakeClient(client)){
+ 	for(int client = 1; client <= MaxClients; client++)
+	{
+ 		if(IsClientInGame(client) && !IsPlayerAlive(client) && !IsFakeClient(client))
+		{
  			int observee 		= GetEntPropEnt(client, Prop_Send, "m_hObserverTarget");
  			int ObserverMode 	= GetEntProp(client, Prop_Send, "m_iObserverMode");
  
- 			if(observee == target && (ObserverMode == 4 || ObserverMode == 5)){
+ 			if(observee == target && (ObserverMode == 4 || ObserverMode == 5))
+			{
  				CPrintToChat(client, buffer);
  			}
  		}
