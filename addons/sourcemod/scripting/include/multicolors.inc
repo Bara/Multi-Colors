@@ -47,9 +47,9 @@ stock void CPrintToChat(int client, const char[] message, any ...)
 		CFixColors();
 
 	if (!IsSource2009())
-		C_PrintToChat(client, buffer);
+		C_PrintToChat(client, "%s", buffer);
 	else
-		MC_PrintToChat(client, buffer);
+		MC_PrintToChat(client, "%s", buffer);
 }
 
 
@@ -71,9 +71,9 @@ stock void CPrintToChatAll(const char[] message, any ...)
 		CFixColors();
 
 	if (!IsSource2009())
-		C_PrintToChatAll(buffer);
+		C_PrintToChatAll("%s", buffer);
 	else
-		MC_PrintToChatAll(buffer);
+		MC_PrintToChatAll("%s", buffer);
 }
 
 /**
@@ -127,9 +127,9 @@ stock void CPrintToChatEx(int client, int author, const char[] message, any ...)
 		CFixColors();
 	
 	if (!IsSource2009())
-		C_PrintToChatEx(client, author, buffer);
+		C_PrintToChatEx(client, author, "%s", buffer);
 	else
-		MC_PrintToChatEx(client, author, buffer);
+		MC_PrintToChatEx(client, author, "%s", buffer);
 }
 
 /**
@@ -149,9 +149,9 @@ stock void CPrintToChatAllEx(int author, const char[] message, any ...)
 		CFixColors();
 
 	if (!IsSource2009())
-		C_PrintToChatAllEx(author, buffer);
+		C_PrintToChatAllEx(author, "%s", buffer);
 	else
-		MC_PrintToChatAllEx(author, buffer);
+		MC_PrintToChatAllEx(author, "%s", buffer);
 }
 
 /**
@@ -203,9 +203,9 @@ stock void CReplyToCommand(int author, const char[] message, any ...)
 		CFixColors();
 
 	if (!IsSource2009())
-		C_ReplyToCommand(author, buffer);
+		C_ReplyToCommand(author, "%s", buffer);
 	else
-		MC_ReplyToCommand(author, buffer);
+		MC_ReplyToCommand(author, "%s", buffer);
 }
 
 
@@ -228,9 +228,9 @@ stock void CReplyToCommand(int author, const char[] message, any ...)
 		CFixColors();
 
 	if (!IsSource2009())
-		C_ReplyToCommandEx(client, author, buffer);
+		C_ReplyToCommandEx(client, author, "%s", buffer);
 	else
-		MC_ReplyToCommandEx(client, author, buffer);
+		MC_ReplyToCommandEx(client, author, "%s", buffer);
 }
 
 
@@ -260,9 +260,9 @@ stock void CShowActivity(int author, const char[] message, any ...)
 		CFixColors();
 
 	if (!IsSource2009())
-		C_ShowActivity(author, buffer);
+		C_ShowActivity(author, "%s", buffer);
 	else
-		MC_ShowActivity(author, buffer);
+		MC_ShowActivity(author, "%s", buffer);
 }
 
 
@@ -286,9 +286,9 @@ stock void CShowActivityEx(int author, const char[] tag, const char[] message, a
 		CFixColors();
 
 	if (!IsSource2009())
-		C_ShowActivityEx(author, tag, buffer);
+		C_ShowActivityEx(author, tag, "%s", buffer);
 	else
-		MC_ShowActivityEx(author, tag, buffer);
+		MC_ShowActivityEx(author, tag, "%s", buffer);
 }
 
 
@@ -315,9 +315,9 @@ stock void CShowActivityEx(int author, const char[] tag, const char[] message, a
 		CFixColors();
 
 	if (!IsSource2009())
-		C_ShowActivity2(author, tag, buffer);
+		C_ShowActivity2(author, tag, "%s", buffer);
 	else
-		MC_ShowActivity2(author, tag, buffer);
+		MC_ShowActivity2(author, tag, "%s", buffer);
 }
 
 
