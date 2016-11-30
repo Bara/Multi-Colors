@@ -245,11 +245,11 @@ stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags =
 	int value;
 	char tag[32], buff[32]; 
 	char[] output = new char[maxlen];
-	
+
 	strcopy(output, maxlen, buffer);
 	// Since the string's size is going to be changing, output will hold the replaced string and we'll search buffer
-	
-	Handle regex = CompileRegex("{[a-zA-Z0-9]+}");
+
+	Handle regex = CompileRegex("{[#a-zA-Z0-9]+}");
 	for(int i = 0; i < 1000; i++) { // The RegEx extension is quite flaky, so we have to loop here :/. This loop is supposed to be infinite and broken by return, but conditions have been added to be safe.
 		if(MatchRegex(regex, buffer[cursor]) < 1) {
 			CloseHandle(regex);
@@ -262,11 +262,25 @@ stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags =
 		strcopy(buff, sizeof(buff), tag);
 		ReplaceString(buff, sizeof(buff), "{", "");
 		ReplaceString(buff, sizeof(buff), "}", "");
-		
-		if(!GetTrieValue(MC_Trie, buff, value)) {
+
+		if (buff[0] == '#') {
+			if(strlen(buff) == 7) {
+				Format(buff, sizeof(buff), "\x07%s", buff[1]);
+			} else if (strlen(buff) == 9) {
+				Format(buff, sizeof(buff), "\x08%s", buff[1]);
+			} else {
+				continue;
+			}
+
+			if (removeTags) {
+				ReplaceString(output, maxlen, tag, "", false);
+			} else {
+				ReplaceString(output, maxlen, tag, buff, false);
+			}
+		} else if(!GetTrieValue(MC_Trie, buff, value)) {
 			continue;
 		}
-		
+
 		if(removeTags) {
 			ReplaceString(output, maxlen, tag, "", false);
 		} else {
@@ -402,14 +416,14 @@ stock int MC_ShowActivity(int client, const char[] format, any ...)
 {
 	if (sm_show_activity == INVALID_HANDLE)
 		sm_show_activity = FindConVar("sm_show_activity");
-		
+
 	char tag[] = "[SM] ";
-	
+
 	char szBuffer[MC_MAX_MESSAGE_LENGTH];
 	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
 	int value = GetConVarInt(sm_show_activity);
 	ReplySource replyto = GetCmdReplySource();
-	
+
 	char name[MAX_NAME_LENGTH] = "Console";
 	char sign[MAX_NAME_LENGTH] = "ADMIN";
 	bool display_in_chat = false;
@@ -417,7 +431,7 @@ stock int MC_ShowActivity(int client, const char[] format, any ...)
 	{
 		if (client < 0 || client > MaxClients || !IsClientConnected(client))
 			ThrowError("Client index %d is invalid", client);
-		
+
 		GetClientName(client, name, sizeof(name));
 		AdminId id = GetUserAdmin(client);
 		if (id == INVALID_ADMIN_ID
@@ -425,13 +439,13 @@ stock int MC_ShowActivity(int client, const char[] format, any ...)
 		{
 			sign = "PLAYER";
 		}
-		
+
 		/* Display the message to the client? */
 		if (replyto == SM_REPLY_TO_CONSOLE)
 		{
 			SetGlobalTransTarget(client);
 			VFormat(szBuffer, sizeof(szBuffer), format, 3);
-			
+
 			MC_RemoveTags(szBuffer, sizeof(szBuffer));
 			PrintToConsole(client, "%s%s\n", tag, szBuffer);
 			display_in_chat = true;
@@ -441,16 +455,16 @@ stock int MC_ShowActivity(int client, const char[] format, any ...)
 	{
 		SetGlobalTransTarget(LANG_SERVER);
 		VFormat(szBuffer, sizeof(szBuffer), format, 3);
-		
+
 		MC_RemoveTags(szBuffer, sizeof(szBuffer));
 		PrintToServer("%s%s\n", tag, szBuffer);
 	}
-	
+
 	if (!value)
 	{
 		return 1;
 	}
-	
+
 	MuCo_LoopClients(i)
 	{
 		if (i == 0
@@ -475,7 +489,7 @@ stock int MC_ShowActivity(int client, const char[] format, any ...)
 					newsign = name;
 				}
 				VFormat(szBuffer, sizeof(szBuffer), format, 3);
-				
+
 				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
@@ -494,12 +508,12 @@ stock int MC_ShowActivity(int client, const char[] format, any ...)
 					newsign = name;
 				}
 				VFormat(szBuffer, sizeof(szBuffer), format, 3);
-				
+
 				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
 	}
-	
+
 	return 1;
 }
 
@@ -518,12 +532,12 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 {
 	if (sm_show_activity == INVALID_HANDLE)
 		sm_show_activity = FindConVar("sm_show_activity");
-		
+
 	char szBuffer[MC_MAX_MESSAGE_LENGTH];
 	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
 	int value = GetConVarInt(sm_show_activity);
 	ReplySource replyto = GetCmdReplySource();
-	
+
 	char name[MAX_NAME_LENGTH] = "Console";
 	char sign[MAX_NAME_LENGTH] = "ADMIN";
 	bool display_in_chat = false;
@@ -531,7 +545,7 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 	{
 		if (client < 0 || client > MaxClients || !IsClientConnected(client))
 			ThrowError("Client index %d is invalid", client);
-		
+
 		GetClientName(client, name, sizeof(name));
 		AdminId id = GetUserAdmin(client);
 		if (id == INVALID_ADMIN_ID
@@ -539,13 +553,13 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 		{
 			sign = "PLAYER";
 		}
-		
+
 		/* Display the message to the client? */
 		if (replyto == SM_REPLY_TO_CONSOLE)
 		{
 			SetGlobalTransTarget(client);
 			VFormat(szBuffer, sizeof(szBuffer), format, 4);
-			
+
 			MC_RemoveTags(szBuffer, sizeof(szBuffer));
 			PrintToConsole(client, "%s%s\n", tag, szBuffer);
 			display_in_chat = true;
@@ -555,16 +569,16 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 	{
 		SetGlobalTransTarget(LANG_SERVER);
 		VFormat(szBuffer, sizeof(szBuffer), format, 4);
-		
+
 		MC_RemoveTags(szBuffer, sizeof(szBuffer));
 		PrintToServer("%s%s\n", tag, szBuffer);
 	}
-	
+
 	if (!value)
 	{
 		return 1;
 	}
-	
+
 	MuCo_LoopClients(i)
 	{
 		if (i == 0
@@ -589,7 +603,7 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 					newsign = name;
 				}
 				VFormat(szBuffer, sizeof(szBuffer), format, 4);
-				
+
 				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
@@ -608,12 +622,12 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 					newsign = name;
 				}
 				VFormat(szBuffer, sizeof(szBuffer), format, 4);
-				
+
 				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
 	}
-	
+
 	return 1;
 }
 
@@ -634,19 +648,19 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 {
 	if (sm_show_activity == INVALID_HANDLE)
 		sm_show_activity = FindConVar("sm_show_activity");
-	
+
 	char szBuffer[MC_MAX_MESSAGE_LENGTH];
 	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
 	int value = GetConVarInt(sm_show_activity);
 	// ReplySource replyto = GetCmdReplySource();
-	
+
 	char name[MAX_NAME_LENGTH] = "Console";
 	char sign[MAX_NAME_LENGTH] = "ADMIN";
 	if (client != 0)
 	{
 		if (client < 0 || client > MaxClients || !IsClientConnected(client))
 			ThrowError("Client index %d is invalid", client);
-		
+
 		GetClientName(client, name, sizeof(name));
 		AdminId id = GetUserAdmin(client);
 		if (id == INVALID_ADMIN_ID
@@ -654,10 +668,10 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 		{
 			sign = "PLAYER";
 		}
-		
+
 		SetGlobalTransTarget(client);
 		VFormat(szBuffer, sizeof(szBuffer), format, 4);
-		
+
 		/* We don't display directly to the console because the chat text 
 		 * simply gets added to the console, so we don't want it to print 
 		 * twice.
@@ -668,16 +682,16 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 	{
 		SetGlobalTransTarget(LANG_SERVER);
 		VFormat(szBuffer, sizeof(szBuffer), format, 4);
-		
+
 		MC_RemoveTags(szBuffer, sizeof(szBuffer));
 		PrintToServer("%s%s\n", tag, szBuffer);
 	}
-	
+
 	if (!value)
 	{
 		return 1;
 	}
-	
+
 	MuCo_LoopClients(i)
 	{
 		if (i == 0
@@ -702,7 +716,7 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 					newsign = name;
 				}
 				VFormat(szBuffer, sizeof(szBuffer), format, 4);
-				
+
 				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
@@ -721,13 +735,13 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 					newsign = name;
 				}
 				VFormat(szBuffer, sizeof(szBuffer), format, 4);
-				
+
 				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
 	}
-	
-	return 1;	
+
+	return 1;
 }
 
 /**
