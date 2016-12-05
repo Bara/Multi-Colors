@@ -32,7 +32,6 @@ static Handle sm_show_activity = INVALID_HANDLE;
  * 
  * @param client		Client index.
  * @param message		Message (formatting rules).
- * @noreturn
  * 
  * On error/Errors:		If the client is not connected an error will be thrown.
  */
@@ -58,7 +57,6 @@ stock void MC_PrintToChat(int client, const char[] message, any ...) {
  * 
  * @param client		Client index.
  * @param message		Message (formatting rules).
- * @noreturn
  */
 stock void MC_PrintToChatAll(const char[] message, any ...) {
 	MC_CheckTrie();
@@ -83,7 +81,6 @@ stock void MC_PrintToChatAll(const char[] message, any ...) {
  * @param client		Client index.
  * @param author		Author index whose color will be used for teamcolor tag.
  * @param message		Message (formatting rules).
- * @noreturn
  * 
  * On error/Errors:		If the client or author are not connected an error will be thrown
  */
@@ -115,7 +112,6 @@ stock void MC_PrintToChatEx(int client, int author, const char[] message, any ..
  *
  * @param author	  Author index whose color will be used for teamcolor tag.
  * @param message   Message (formatting rules).
- * @noreturn
  * 
  * On error/Errors:   If the author is not connected an error will be thrown.
  */
@@ -146,7 +142,6 @@ stock void MC_PrintToChatAllEx(int author, const char[] message, any ...) {
  * 
  * @param client	Client to send usermessage to
  * @param message	Message to send
- * @noreturn
  */
 stock void MC_SendMessage(int client, const char[] message, int author = 0) {
 	if(author == 0) {
@@ -193,7 +188,6 @@ stock void MC_SendMessage(int client, const char[] message, int author = 0) {
  * After printing the message, the client will no longer be skipped.
  * 
  * @param client   Client index
- * @noreturn
  */
 stock void MC_SkipNextClient(int client) {
 	if(client <= 0 || client > MaxClients) {
@@ -220,7 +214,6 @@ stock void MC_CheckTrie() {
  * @param author		Optional client index to use for {teamcolor} tags, or 0 for none
  * @param removeTags	Optional boolean value to determine whether we're replacing tags with colors, or just removing tags, used by MC_RemoveTags
  * @param maxlen		Optional value for max buffer length, used by MC_RemoveTags
- * @noreturn
  * 
  * On error/Errors:		If the client index passed for author is invalid or not in game.
  */
@@ -299,7 +292,6 @@ stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags =
  * @param maxlen		Max length of output buffer
  * @param start			Position to start at
  * @param numChars		Number of characters to return, or 0 for the end of the string
- * @noreturn
  */
 stock void CSubString(const char[] input, char[] output, int maxlen, int start, int numChars = 0) {
 	int i = 0;
@@ -317,7 +309,6 @@ stock void CSubString(const char[] input, char[] output, int maxlen, int start, 
  * Converts a string to lowercase
  * 
  * @param buffer		String to convert
- * @noreturn
  */
 stock void MC_StrToLower(char[] buffer) {
 	int len = strlen(buffer);
@@ -351,7 +342,6 @@ stock bool MC_AddColor(const char[] name, int color) {
  * 
  * @param message		Message to remove tags from
  * @param maxlen		Maximum buffer length
- * @noreturn
  */
 stock void MC_RemoveTags(char[] message, int maxlen) {
 	MC_ReplaceColorCodes(message, 0, true, maxlen);
@@ -362,13 +352,15 @@ stock void MC_RemoveTags(char[] message, int maxlen) {
  * 
  * @param client		Client to reply to
  * @param message		Message (formatting rules)
- * @noreturn
  */
 stock void MC_ReplyToCommand(int client, const char[] message, any ...) {
 	char buffer[MAX_BUFFER_LENGTH];
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 3);
-	if(GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
+	if(client == 0) {
+		MC_RemoveTags(buffer, sizeof(buffer));
+		PrintToServer("%s", buffer);
+	} if(GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
 		MC_RemoveTags(buffer, sizeof(buffer));
 		PrintToConsole(client, "%s", buffer);
 	} else {
@@ -382,13 +374,15 @@ stock void MC_ReplyToCommand(int client, const char[] message, any ...) {
  * @param client		Client to reply to
  * @param author		Client to use for {teamcolor}
  * @param message		Message (formatting rules)
- * @noreturn
  */
 stock void MC_ReplyToCommandEx(int client, int author, const char[] message, any ...) {
 	char buffer[MAX_BUFFER_LENGTH];
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 4);
-	if(GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
+	if(client == 0) {
+		MC_RemoveTags(buffer, sizeof(buffer));
+		PrintToServer("%s", buffer);
+	} if(GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
 		MC_RemoveTags(buffer, sizeof(buffer));
 		PrintToConsole(client, "%s", buffer);
 	} else {
@@ -409,7 +403,6 @@ stock void MC_ReplyToCommandEx(int client, int author, const char[] message, any
  * @param client		Client index doing the action, or 0 for server.
  * @param format		Formatting rules.
  * @param ...			Variable number of format parameters.
- * @noreturn
  * @error
  */
 stock int MC_ShowActivity(int client, const char[] format, any ...)
@@ -525,7 +518,6 @@ stock int MC_ShowActivity(int client, const char[] format, any ...)
  * @param tags			Tag to display with.
  * @param format		Formatting rules.
  * @param ...			Variable number of format parameters.
- * @noreturn
  * @error
  */
 stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, any ...)
@@ -641,7 +633,6 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
  * @param tags			Tag to prepend to the message.
  * @param format		Formatting rules.
  * @param ...			Variable number of format parameters.
- * @noreturn
  * @error
  */
 stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, any ...)
