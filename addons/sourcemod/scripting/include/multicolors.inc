@@ -28,6 +28,8 @@
 bool g_bCFixColors = false;
 
 #define PREFIX_MAX_LENGTH 64
+#define PREFIX_SEPARATOR "{default} "
+
 char g_sPrefix[PREFIX_MAX_LENGTH] = "";
 
 /**
@@ -36,9 +38,22 @@ char g_sPrefix[PREFIX_MAX_LENGTH] = "";
  * @param sPrefix		Prefix
  */
 stock void CSetPrefix(const char[] sPrefix, any ...) {
-	VFormat(g_sPrefix, sizeof(g_sPrefix) - 10, sPrefix, 2);
+	if (!sPrefix[0])
+		return;
+
+	VFormat(g_sPrefix, sizeof(g_sPrefix) - strlen(PREFIX_SEPARATOR), sPrefix, 2);
+
 	// Add ending space
-	Format(g_sPrefix, sizeof(g_sPrefix), "%s{default} ", g_sPrefix);
+	Format(g_sPrefix, sizeof(g_sPrefix), "%s%s", g_sPrefix, PREFIX_SEPARATOR);
+}
+
+/**
+ * Add a chat prefix before all chat msg
+ *
+ * @param sPrefix		Prefix
+ */
+stock void CClearPrefix() {
+	g_sPrefix[0] = '\0';
 }
 
 /**
@@ -237,8 +252,6 @@ stock void CReplyToCommand(int author, const char[] message, any ...)
 /**
  * Remove all tags and print to server
  * 
- * @param client		Client to reply to
- * @param author		Client to use for {teamcolor}
  * @param message		Message (formatting rules)
  */
  stock void CPrintToServer(const char[] message, any ...)
@@ -246,7 +259,7 @@ stock void CReplyToCommand(int author, const char[] message, any ...)
 	char buffer[MAX_MESSAGE_LENGTH];
 	char prefixBuffer[PREFIX_MAX_LENGTH];
 
-	VFormat(buffer, sizeof(buffer), message, 4);
+	VFormat(buffer, sizeof(buffer), message, 2);
 	strcopy(prefixBuffer, sizeof(prefixBuffer), g_sPrefix);
 
 	if (!g_bCFixColors)
@@ -285,9 +298,9 @@ stock void CShowActivity(int author, const char[] message, any ...)
 		CFixColors();
 
 	if (!IsSource2009())
-		C_ShowActivity(author, "%s%s", g_sPrefix, buffer);
+		C_ShowActivity(author, "%s", buffer);
 	else
-		MC_ShowActivity(author, "%s%s", g_sPrefix, buffer);
+		MC_ShowActivity(author, "%s", buffer);
 }
 
 
@@ -311,9 +324,9 @@ stock void CShowActivityEx(int author, const char[] tag, const char[] message, a
 		CFixColors();
 
 	if (!IsSource2009())
-		C_ShowActivityEx(author, tag, "%s%s", g_sPrefix, buffer);
+		C_ShowActivityEx(author, tag, "%s", buffer);
 	else
-		MC_ShowActivityEx(author, tag, "%s%s", g_sPrefix, buffer);
+		MC_ShowActivityEx(author, tag, "%s", buffer);
 }
 
 
@@ -340,9 +353,9 @@ stock void CShowActivityEx(int author, const char[] tag, const char[] message, a
 		CFixColors();
 
 	if (!IsSource2009())
-		C_ShowActivity2(author, tag, "%s%s", g_sPrefix, buffer);
+		C_ShowActivity2(author, tag, "%s", buffer);
 	else
-		MC_ShowActivity2(author, tag, "%s%s", g_sPrefix, buffer);
+		MC_ShowActivity2(author, tag, "%s", buffer);
 }
 
 
