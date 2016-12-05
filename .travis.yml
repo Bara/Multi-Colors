@@ -1,0 +1,17 @@
+addons:
+  apt:
+    packages:
+    - lib32z1
+    - lib32stdc++6
+
+language: c
+
+sudo: false
+
+env:
+  - VERSION=1.7
+  - VERSION=1.8
+  - VERSION=1.9
+
+script:
+- bash ci/test.sh $VERSION
