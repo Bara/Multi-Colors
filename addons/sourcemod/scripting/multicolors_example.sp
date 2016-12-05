@@ -1,7 +1,9 @@
 #pragma semicolon 1
-#pragma newdecls required
 
 #include <sourcemod>
+
+#pragma newdecls required
+
 #include <multicolors>
 
 public Plugin myinfo =

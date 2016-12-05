@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Download und extract sourcemod"
+echo "Download und extract sourcemod" $1
 wget -q "http://www.sourcemod.net/latest.php?version=$1&os=linux" -O sourcemod.tar.gz
 # wget "http://www.sourcemod.net/latest.php?version=$1&os=linux" -O sourcemod.tar.gz
 tar -xzf sourcemod.tar.gz
