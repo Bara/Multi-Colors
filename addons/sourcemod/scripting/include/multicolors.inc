@@ -1,9 +1,9 @@
-#if defined _mutlicolors_included
+#if defined _multicolors_included
 	#endinput
 #endif
-#define _mutlicolors_included
+#define _multicolors_included
 
-#define MuCo_VERSION "2.0.1"
+#define MuCo_VERSION "2.1.0"
 #define MuCo_LoopClients(%1) for(int %1 = 1; %1 <= MaxClients; %1++)
 
 #include <multicolors/morecolors>
@@ -232,6 +232,30 @@ stock void CReplyToCommand(int author, const char[] message, any ...)
 		C_ReplyToCommandEx(client, author, "%s%s", g_sPrefix, buffer);
 	else
 		MC_ReplyToCommandEx(client, author, "%s%s", g_sPrefix, buffer);
+}
+
+/**
+ * Remove all tags and print to server
+ * 
+ * @param client		Client to reply to
+ * @param author		Client to use for {teamcolor}
+ * @param message		Message (formatting rules)
+ */
+ stock void CPrintToServer(const char[] message, any ...)
+{
+	char buffer[MAX_MESSAGE_LENGTH];
+	char prefixBuffer[PREFIX_MAX_LENGTH];
+
+	VFormat(buffer, sizeof(buffer), message, 4);
+	strcopy(prefixBuffer, sizeof(prefixBuffer), g_sPrefix);
+
+	if (!g_bCFixColors)
+		CFixColors();
+
+	CRemoveTags(buffer, sizeof(buffer));
+	CRemoveTags(prefixBuffer, sizeof(prefixBuffer));
+
+	PrintToServer("%s%s", prefixBuffer, buffer);
 }
 
 
