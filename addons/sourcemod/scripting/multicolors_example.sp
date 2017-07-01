@@ -20,8 +20,8 @@ public Action Command_AddPrefix(int client, int args)
 	}
 	else
 	{
-		CSetPrefix("{darkred}[MultiColor]{default}");
-		CReplyToCommand(client, "You can use {green}sm_multicolors {default}now !");
+		CSetPrefix("{orange}[MultiColor]{default}");
+		CReplyToCommand(client, "You can use {yellow}sm_multicolors {default}now !");
 	}
 }
 
@@ -35,7 +35,7 @@ public Action Command_ClearPrefix(int client, int args)
 	}
 	else
 	{
-		CReplyToCommand(client, "You can use {green}sm_multicolors {default}now !");
+		CReplyToCommand(client, "You can use {yellow}sm_multicolors {default}now !");
 	}
 }
 
