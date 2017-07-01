@@ -16,6 +16,20 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	RegConsoleCmd("sm_multicolors", Command_MultiColors);
+	RegConsoleCmd("sm_addprefix", Command_AddPrefix);
+	RegConsoleCmd("sm_clearprefix", Command_ClearPrefix);
+}
+
+public Action Command_AddPrefix(int client, int args)
+{
+	CSetPrefix("{#FF0000AA}[{#FFFF00}MultiColor{#FF0000AA}]");
+	CReplyToCommand(client, "You can use {#FFFFFF}sm_multicolors {default}now !");
+}
+
+public Action Command_ClearPrefix(int client, int args)
+{
+	CClearPrefix();
+	CReplyToCommand(client, "You can use {#FFFFFF}sm_multicolors {default}now !");
 }
 
 public Action Command_MultiColors(int client, int args)
@@ -31,22 +45,24 @@ public Action Command_MultiColors(int client, int args)
 	CShowActivity(client, "CShowActivity - {darkblue}%s - {darkred}%s", "Test", "Test");
 	CShowActivityEx(client, "[SM]", "CShowActivityEx - {darkblue}%s - {darkred}%s", "Test", "Test");
 	CShowActivity2(client, "[SM]", "CShowActivity2 - {darkblue}%s - {darkred}%s", "Test", "Test");
-	
+
 	char sName[MAX_NAME_LENGTH];
 	Format(sName, sizeof(sName), "{green}%N", client);
-	
+
 	CPrintToChat(client, "CPrintToChat - Name (Before CFormatColor): %s", sName);
 	PrintToChat(client, "PrintToChat - Name (Before CFormatColor): %s", sName);
 	CFormatColor(sName, MAX_NAME_LENGTH, client);
 	CPrintToChat(client, "CPrintToChat - Name (After CFormatColor): %s", sName);
 	PrintToChat(client, "PrintToChat - Name (After CFormatColor): %s", sName);
-	
+
 	Format(sName, sizeof(sName), "{green}%N", client);
-	
+
 	CPrintToChat(client, "Name (Before CFormatColor): %s", sName);
 	CRemoveTags(sName, MAX_NAME_LENGTH);
 	CPrintToChat(client, "Name (After CFormatColor): %s", sName);
-	
+
 	CPrintToChatObservers(client, "CPrintToChatObservers - {darkblue}%s - {darkred}%s", "Test", "Test");
 	CPrintToChatObserversEx(client, "CPrintToChatObserversEx - {darkblue}%s - {darkred}%s", "Test", "Test");
+
+	CPrintToServer("CPrintToServer - {darkblue}%s - {darkred}%s", "Test", "Test");
 }

@@ -34,7 +34,6 @@ static Handle sm_show_activity = INVALID_HANDLE;
  * 
  * @param client		Client index.
  * @param message		Message (formatting rules).
- * @noreturn
  * 
  * On error/Errors:		If the client is not connected an error will be thrown.
  */
@@ -60,7 +59,6 @@ stock void MC_PrintToChat(int client, const char[] message, any ...) {
  * 
  * @param client		Client index.
  * @param message		Message (formatting rules).
- * @noreturn
  */
 stock void MC_PrintToChatAll(const char[] message, any ...) {
 	MC_CheckTrie();
@@ -85,7 +83,6 @@ stock void MC_PrintToChatAll(const char[] message, any ...) {
  * @param client		Client index.
  * @param author		Author index whose color will be used for teamcolor tag.
  * @param message		Message (formatting rules).
- * @noreturn
  * 
  * On error/Errors:		If the client or author are not connected an error will be thrown
  */
@@ -117,7 +114,6 @@ stock void MC_PrintToChatEx(int client, int author, const char[] message, any ..
  *
  * @param author	  Author index whose color will be used for teamcolor tag.
  * @param message   Message (formatting rules).
- * @noreturn
  * 
  * On error/Errors:   If the author is not connected an error will be thrown.
  */
@@ -148,7 +144,6 @@ stock void MC_PrintToChatAllEx(int author, const char[] message, any ...) {
  * 
  * @param client	Client to send usermessage to
  * @param message	Message to send
- * @noreturn
  */
 stock void MC_SendMessage(int client, const char[] message, int author = 0) {
 	if(author == 0) {
@@ -195,7 +190,6 @@ stock void MC_SendMessage(int client, const char[] message, int author = 0) {
  * After printing the message, the client will no longer be skipped.
  * 
  * @param client   Client index
- * @noreturn
  */
 stock void MC_SkipNextClient(int client) {
 	if(client <= 0 || client > MaxClients) {
@@ -222,7 +216,6 @@ stock void MC_CheckTrie() {
  * @param author		Optional client index to use for {teamcolor} tags, or 0 for none
  * @param removeTags	Optional boolean value to determine whether we're replacing tags with colors, or just removing tags, used by MC_RemoveTags
  * @param maxlen		Optional value for max buffer length, used by MC_RemoveTags
- * @noreturn
  * 
  * On error/Errors:		If the client index passed for author is invalid or not in game.
  */
@@ -247,11 +240,11 @@ stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags =
 	int value;
 	char tag[32], buff[32]; 
 	char[] output = new char[maxlen];
-	
+
 	strcopy(output, maxlen, buffer);
 	// Since the string's size is going to be changing, output will hold the replaced string and we'll search buffer
-	
-	Handle regex = CompileRegex("{[a-zA-Z0-9]+}");
+
+	Handle regex = CompileRegex("{[#a-zA-Z0-9]+}");
 	for(int i = 0; i < 1000; i++) { // The RegEx extension is quite flaky, so we have to loop here :/. This loop is supposed to be infinite and broken by return, but conditions have been added to be safe.
 		if(MatchRegex(regex, buffer[cursor]) < 1) {
 			CloseHandle(regex);
@@ -264,11 +257,25 @@ stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags =
 		strcopy(buff, sizeof(buff), tag);
 		ReplaceString(buff, sizeof(buff), "{", "");
 		ReplaceString(buff, sizeof(buff), "}", "");
-		
-		if(!GetTrieValue(MC_Trie, buff, value)) {
+
+		if (buff[0] == '#') {
+			if(strlen(buff) == 7) {
+				Format(buff, sizeof(buff), "\x07%s", buff[1]);
+			} else if (strlen(buff) == 9) {
+				Format(buff, sizeof(buff), "\x08%s", buff[1]);
+			} else {
+				continue;
+			}
+
+			if (removeTags) {
+				ReplaceString(output, maxlen, tag, "", false);
+			} else {
+				ReplaceString(output, maxlen, tag, buff, false);
+			}
+		} else if(!GetTrieValue(MC_Trie, buff, value)) {
 			continue;
 		}
-		
+
 		if(removeTags) {
 			ReplaceString(output, maxlen, tag, "", false);
 		} else {
@@ -287,7 +294,6 @@ stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags =
  * @param maxlen		Max length of output buffer
  * @param start			Position to start at
  * @param numChars		Number of characters to return, or 0 for the end of the string
- * @noreturn
  */
 stock void CSubString(const char[] input, char[] output, int maxlen, int start, int numChars = 0) {
 	int i = 0;
@@ -305,7 +311,6 @@ stock void CSubString(const char[] input, char[] output, int maxlen, int start, 
  * Converts a string to lowercase
  * 
  * @param buffer		String to convert
- * @noreturn
  */
 stock void MC_StrToLower(char[] buffer) {
 	int len = strlen(buffer);
@@ -339,7 +344,6 @@ stock bool MC_AddColor(const char[] name, int color) {
  * 
  * @param message		Message to remove tags from
  * @param maxlen		Maximum buffer length
- * @noreturn
  */
 stock void MC_RemoveTags(char[] message, int maxlen) {
 	MC_ReplaceColorCodes(message, 0, true, maxlen);
@@ -350,13 +354,15 @@ stock void MC_RemoveTags(char[] message, int maxlen) {
  * 
  * @param client		Client to reply to
  * @param message		Message (formatting rules)
- * @noreturn
  */
 stock void MC_ReplyToCommand(int client, const char[] message, any ...) {
 	char buffer[MAX_BUFFER_LENGTH];
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 3);
-	if(GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
+	if(client == 0) {
+		MC_RemoveTags(buffer, sizeof(buffer));
+		PrintToServer("%s", buffer);
+	} if(GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
 		MC_RemoveTags(buffer, sizeof(buffer));
 		PrintToConsole(client, "%s", buffer);
 	} else {
@@ -370,13 +376,15 @@ stock void MC_ReplyToCommand(int client, const char[] message, any ...) {
  * @param client		Client to reply to
  * @param author		Client to use for {teamcolor}
  * @param message		Message (formatting rules)
- * @noreturn
  */
 stock void MC_ReplyToCommandEx(int client, int author, const char[] message, any ...) {
 	char buffer[MAX_BUFFER_LENGTH];
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 4);
-	if(GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
+	if(client == 0) {
+		MC_RemoveTags(buffer, sizeof(buffer));
+		PrintToServer("%s", buffer);
+	} if(GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
 		MC_RemoveTags(buffer, sizeof(buffer));
 		PrintToConsole(client, "%s", buffer);
 	} else {
@@ -397,21 +405,20 @@ stock void MC_ReplyToCommandEx(int client, int author, const char[] message, any
  * @param client		Client index doing the action, or 0 for server.
  * @param format		Formatting rules.
  * @param ...			Variable number of format parameters.
- * @noreturn
  * @error
  */
 stock int MC_ShowActivity(int client, const char[] format, any ...)
 {
 	if (sm_show_activity == INVALID_HANDLE)
 		sm_show_activity = FindConVar("sm_show_activity");
-		
+
 	char tag[] = "[SM] ";
-	
+
 	char szBuffer[MC_MAX_MESSAGE_LENGTH];
 	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
 	int value = GetConVarInt(sm_show_activity);
 	ReplySource replyto = GetCmdReplySource();
-	
+
 	char name[MAX_NAME_LENGTH] = "Console";
 	char sign[MAX_NAME_LENGTH] = "ADMIN";
 	bool display_in_chat = false;
@@ -419,7 +426,7 @@ stock int MC_ShowActivity(int client, const char[] format, any ...)
 	{
 		if (client < 0 || client > MaxClients || !IsClientConnected(client))
 			ThrowError("Client index %d is invalid", client);
-		
+
 		GetClientName(client, name, sizeof(name));
 		AdminId id = GetUserAdmin(client);
 		if (id == INVALID_ADMIN_ID
@@ -427,13 +434,13 @@ stock int MC_ShowActivity(int client, const char[] format, any ...)
 		{
 			sign = "PLAYER";
 		}
-		
+
 		/* Display the message to the client? */
 		if (replyto == SM_REPLY_TO_CONSOLE)
 		{
 			SetGlobalTransTarget(client);
 			VFormat(szBuffer, sizeof(szBuffer), format, 3);
-			
+
 			MC_RemoveTags(szBuffer, sizeof(szBuffer));
 			PrintToConsole(client, "%s%s\n", tag, szBuffer);
 			display_in_chat = true;
@@ -443,16 +450,16 @@ stock int MC_ShowActivity(int client, const char[] format, any ...)
 	{
 		SetGlobalTransTarget(LANG_SERVER);
 		VFormat(szBuffer, sizeof(szBuffer), format, 3);
-		
+
 		MC_RemoveTags(szBuffer, sizeof(szBuffer));
 		PrintToServer("%s%s\n", tag, szBuffer);
 	}
-	
+
 	if (!value)
 	{
 		return 1;
 	}
-	
+
 	MuCo_LoopClients(i)
 	{
 		if (i == 0
@@ -477,7 +484,7 @@ stock int MC_ShowActivity(int client, const char[] format, any ...)
 					newsign = name;
 				}
 				VFormat(szBuffer, sizeof(szBuffer), format, 3);
-				
+
 				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
@@ -496,12 +503,12 @@ stock int MC_ShowActivity(int client, const char[] format, any ...)
 					newsign = name;
 				}
 				VFormat(szBuffer, sizeof(szBuffer), format, 3);
-				
+
 				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
 	}
-	
+
 	return 1;
 }
 
@@ -513,19 +520,18 @@ stock int MC_ShowActivity(int client, const char[] format, any ...)
  * @param tags			Tag to display with.
  * @param format		Formatting rules.
  * @param ...			Variable number of format parameters.
- * @noreturn
  * @error
  */
 stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, any ...)
 {
 	if (sm_show_activity == INVALID_HANDLE)
 		sm_show_activity = FindConVar("sm_show_activity");
-		
+
 	char szBuffer[MC_MAX_MESSAGE_LENGTH];
 	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
 	int value = GetConVarInt(sm_show_activity);
 	ReplySource replyto = GetCmdReplySource();
-	
+
 	char name[MAX_NAME_LENGTH] = "Console";
 	char sign[MAX_NAME_LENGTH] = "ADMIN";
 	bool display_in_chat = false;
@@ -533,7 +539,7 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 	{
 		if (client < 0 || client > MaxClients || !IsClientConnected(client))
 			ThrowError("Client index %d is invalid", client);
-		
+
 		GetClientName(client, name, sizeof(name));
 		AdminId id = GetUserAdmin(client);
 		if (id == INVALID_ADMIN_ID
@@ -541,13 +547,13 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 		{
 			sign = "PLAYER";
 		}
-		
+
 		/* Display the message to the client? */
 		if (replyto == SM_REPLY_TO_CONSOLE)
 		{
 			SetGlobalTransTarget(client);
 			VFormat(szBuffer, sizeof(szBuffer), format, 4);
-			
+
 			MC_RemoveTags(szBuffer, sizeof(szBuffer));
 			PrintToConsole(client, "%s%s\n", tag, szBuffer);
 			display_in_chat = true;
@@ -557,16 +563,16 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 	{
 		SetGlobalTransTarget(LANG_SERVER);
 		VFormat(szBuffer, sizeof(szBuffer), format, 4);
-		
+
 		MC_RemoveTags(szBuffer, sizeof(szBuffer));
 		PrintToServer("%s%s\n", tag, szBuffer);
 	}
-	
+
 	if (!value)
 	{
 		return 1;
 	}
-	
+
 	MuCo_LoopClients(i)
 	{
 		if (i == 0
@@ -591,7 +597,7 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 					newsign = name;
 				}
 				VFormat(szBuffer, sizeof(szBuffer), format, 4);
-				
+
 				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
@@ -610,12 +616,12 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 					newsign = name;
 				}
 				VFormat(szBuffer, sizeof(szBuffer), format, 4);
-				
+
 				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
 	}
-	
+
 	return 1;
 }
 
@@ -629,26 +635,25 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
  * @param tags			Tag to prepend to the message.
  * @param format		Formatting rules.
  * @param ...			Variable number of format parameters.
- * @noreturn
  * @error
  */
 stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, any ...)
 {
 	if (sm_show_activity == INVALID_HANDLE)
 		sm_show_activity = FindConVar("sm_show_activity");
-	
+
 	char szBuffer[MC_MAX_MESSAGE_LENGTH];
 	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
 	int value = GetConVarInt(sm_show_activity);
 	// ReplySource replyto = GetCmdReplySource();
-	
+
 	char name[MAX_NAME_LENGTH] = "Console";
 	char sign[MAX_NAME_LENGTH] = "ADMIN";
 	if (client != 0)
 	{
 		if (client < 0 || client > MaxClients || !IsClientConnected(client))
 			ThrowError("Client index %d is invalid", client);
-		
+
 		GetClientName(client, name, sizeof(name));
 		AdminId id = GetUserAdmin(client);
 		if (id == INVALID_ADMIN_ID
@@ -656,10 +661,10 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 		{
 			sign = "PLAYER";
 		}
-		
+
 		SetGlobalTransTarget(client);
 		VFormat(szBuffer, sizeof(szBuffer), format, 4);
-		
+
 		/* We don't display directly to the console because the chat text 
 		 * simply gets added to the console, so we don't want it to print 
 		 * twice.
@@ -670,16 +675,16 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 	{
 		SetGlobalTransTarget(LANG_SERVER);
 		VFormat(szBuffer, sizeof(szBuffer), format, 4);
-		
+
 		MC_RemoveTags(szBuffer, sizeof(szBuffer));
 		PrintToServer("%s%s\n", tag, szBuffer);
 	}
-	
+
 	if (!value)
 	{
 		return 1;
 	}
-	
+
 	MuCo_LoopClients(i)
 	{
 		if (i == 0
@@ -704,7 +709,7 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 					newsign = name;
 				}
 				VFormat(szBuffer, sizeof(szBuffer), format, 4);
-				
+
 				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
@@ -723,13 +728,13 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 					newsign = name;
 				}
 				VFormat(szBuffer, sizeof(szBuffer), format, 4);
-				
+
 				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
 	}
-	
-	return 1;	
+
+	return 1;
 }
 
 /**
