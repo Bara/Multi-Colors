@@ -3,7 +3,7 @@
 #endif
 #define _multicolors_included
 
-#define MuCo_VERSION "2.1.0"
+#define MuCo_VERSION "2.1.1"
 #define MuCo_LoopClients(%1) for(int %1 = 1; %1 <= MaxClients; %1++)
 
 #include <multicolors/morecolors>
