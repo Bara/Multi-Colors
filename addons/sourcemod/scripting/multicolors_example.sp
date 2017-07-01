@@ -4,15 +4,6 @@
 #include <sourcemod>
 #include <multicolors>
 
-public Plugin myinfo =
-{
-	name = "Example plugin for multi colors",
-	author = "Bara",
-	description = "Example plugin for multi colors",
-	version = MuCo_VERSION,
-	url = "www.bara.in"
-}
-
 public void OnPluginStart()
 {
 	RegConsoleCmd("sm_multicolors", Command_MultiColors);
@@ -22,14 +13,30 @@ public void OnPluginStart()
 
 public Action Command_AddPrefix(int client, int args)
 {
-	CSetPrefix("{#FF0000AA}[{#FFFF00}MultiColor{#FF0000AA}]");
-	CReplyToCommand(client, "You can use {#FFFFFF}sm_multicolors {default}now !");
+	if (IsSource2009())
+	{
+		CSetPrefix("{#FF0000AA}[{#FFFF00}MultiColor{#FF0000AA}]");
+		CReplyToCommand(client, "You can use {#FFFFFF}sm_multicolors {default}now !");
+	}
+	else
+	{
+		CSetPrefix("{darkred}[MultiColor]{default}");
+		CReplyToCommand(client, "You can use {green}sm_multicolors {default}now !");
+	}
 }
 
 public Action Command_ClearPrefix(int client, int args)
 {
 	CClearPrefix();
-	CReplyToCommand(client, "You can use {#FFFFFF}sm_multicolors {default}now !");
+	
+	if (IsSource2009())
+	{
+		CReplyToCommand(client, "You can use {#FFFFFF}sm_multicolors {default}now !");
+	}
+	else
+	{
+		CReplyToCommand(client, "You can use {green}sm_multicolors {default}now !");
+	}
 }
 
 public Action Command_MultiColors(int client, int args)
