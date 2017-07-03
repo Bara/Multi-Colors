@@ -15,8 +15,11 @@ Multi Colors
  + CShowActivity(int author, const char[] message, any ...)
  + CShowActivityEx(int author, const String:tag[], const char[] message, any ...)
  + CShowActivity2(int author, const String:tag[], cconst char[] message, any ...)
+ + CPrintToServer(const char[] message, any ...)
  + CFormatColor(char[] message, int maxlength, int author = -1)
  + CRemoveTags(char[] message, int maxlen)
+ + CSetPrefix(const char[] sPrefix, any ...)
+ + CClearPrefix()
 
 By using C* Functions, offers these include a good compatibility to Colors and More Colors.
 
