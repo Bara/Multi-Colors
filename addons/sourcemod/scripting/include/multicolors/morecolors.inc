@@ -9,7 +9,6 @@
 
 #pragma newdecls optional
 #include <regex>
-#pragma newdecls required
 
 #define MORE_COLORS_VERSION     "2.0.0-MC"
 #define MC_MAX_MESSAGE_LENGTH   256
