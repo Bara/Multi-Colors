@@ -25,7 +25,7 @@
 
 
 /* Global var to check whether colors are fixed or not */
-bool g_bCFixColors = false;
+static bool g_bCFixColors = false;
 
 #define PREFIX_MAX_LENGTH 64
 #define PREFIX_SEPARATOR "{default} "
