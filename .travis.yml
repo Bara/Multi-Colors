@@ -9,9 +9,8 @@ language: c
 sudo: false
 
 env:
-  - VERSION=1.7
-  - VERSION=1.8
   - VERSION=1.9
+  - VERSION=1.10
 
 script:
 - bash ci/test.sh $VERSION
