@@ -30,7 +30,7 @@
 /* Global var to check whether colors are fixed or not */
 static bool g_bCFixColors = false;
 
-static char g_sPrefix[PREFIX_MAX_LENGTH];
+static char g_sCPrefix[PREFIX_MAX_LENGTH];
 
 /**
  * Add a chat prefix before all chat msg
@@ -41,10 +41,10 @@ stock void CSetPrefix(const char[] sPrefix, any ...) {
 	if (!sPrefix[0])
 		return;
 
-	VFormat(g_sPrefix, sizeof(g_sPrefix) - strlen(PREFIX_SEPARATOR), sPrefix, 2);
+	VFormat(g_sCPrefix, sizeof(g_sCPrefix) - strlen(PREFIX_SEPARATOR), sPrefix, 2);
 
 	// Add ending space
-	Format(g_sPrefix, sizeof(g_sPrefix), "%s%s", g_sPrefix, PREFIX_SEPARATOR);
+	Format(g_sCPrefix, sizeof(g_sCPrefix), "%s%s", g_sCPrefix, PREFIX_SEPARATOR);
 }
 
 /**
@@ -53,7 +53,7 @@ stock void CSetPrefix(const char[] sPrefix, any ...) {
  * @param sPrefix		Prefix
  */
 stock void CClearPrefix() {
-	g_sPrefix[0] = '\0';
+	g_sCPrefix[0] = '\0';
 }
 
 /**
@@ -73,9 +73,9 @@ stock void CPrintToChat(int client, const char[] message, any ...)
 		CFixColors();
 
 	if (!IsSource2009())
-		C_PrintToChat(client, "%s%s", g_sPrefix, buffer);
+		C_PrintToChat(client, "%s%s", g_sCPrefix, buffer);
 	else
-		MC_PrintToChat(client, "%s%s", g_sPrefix, buffer);
+		MC_PrintToChat(client, "%s%s", g_sCPrefix, buffer);
 }
 
 
@@ -96,9 +96,9 @@ stock void CPrintToChatAll(const char[] message, any ...)
 		CFixColors();
 
 	if (!IsSource2009())
-		C_PrintToChatAll("%s%s", g_sPrefix, buffer);
+		C_PrintToChatAll("%s%s", g_sCPrefix, buffer);
 	else
-		MC_PrintToChatAll("%s%s", g_sPrefix, buffer);
+		MC_PrintToChatAll("%s%s", g_sCPrefix, buffer);
 }
 
 /**
@@ -149,9 +149,9 @@ stock void CPrintToChatEx(int client, int author, const char[] message, any ...)
 		CFixColors();
 
 	if (!IsSource2009())
-		C_PrintToChatEx(client, author, "%s%s", g_sPrefix, buffer);
+		C_PrintToChatEx(client, author, "%s%s", g_sCPrefix, buffer);
 	else
-		MC_PrintToChatEx(client, author, "%s%s", g_sPrefix, buffer);
+		MC_PrintToChatEx(client, author, "%s%s", g_sCPrefix, buffer);
 }
 
 /**
@@ -169,9 +169,9 @@ stock void CPrintToChatAllEx(int author, const char[] message, any ...)
 		CFixColors();
 
 	if (!IsSource2009())
-		C_PrintToChatAllEx(author, "%s%s", g_sPrefix, buffer);
+		C_PrintToChatAllEx(author, "%s%s", g_sCPrefix, buffer);
 	else
-		MC_PrintToChatAllEx(author, "%s%s", g_sPrefix, buffer);
+		MC_PrintToChatAllEx(author, "%s%s", g_sCPrefix, buffer);
 }
 
 /**
@@ -220,9 +220,9 @@ stock void CReplyToCommand(int author, const char[] message, any ...)
 		CFixColors();
 
 	if (!IsSource2009())
-		C_ReplyToCommand(author, "%s%s", g_sPrefix, buffer);
+		C_ReplyToCommand(author, "%s%s", g_sCPrefix, buffer);
 	else
-		MC_ReplyToCommand(author, "%s%s", g_sPrefix, buffer);
+		MC_ReplyToCommand(author, "%s%s", g_sCPrefix, buffer);
 }
 
 
@@ -244,9 +244,9 @@ stock void CReplyToCommand(int author, const char[] message, any ...)
 		CFixColors();
 
 	if (!IsSource2009())
-		C_ReplyToCommandEx(client, author, "%s%s", g_sPrefix, buffer);
+		C_ReplyToCommandEx(client, author, "%s%s", g_sCPrefix, buffer);
 	else
-		MC_ReplyToCommandEx(client, author, "%s%s", g_sPrefix, buffer);
+		MC_ReplyToCommandEx(client, author, "%s%s", g_sCPrefix, buffer);
 }
 
 /**
@@ -260,7 +260,7 @@ stock void CReplyToCommand(int author, const char[] message, any ...)
 	char prefixBuffer[PREFIX_MAX_LENGTH];
 
 	VFormat(buffer, sizeof(buffer), message, 2);
-	strcopy(prefixBuffer, sizeof(prefixBuffer), g_sPrefix);
+	strcopy(prefixBuffer, sizeof(prefixBuffer), g_sCPrefix);
 
 	if (!g_bCFixColors)
 		CFixColors();
