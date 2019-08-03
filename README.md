@@ -1,7 +1,7 @@
 Multi Colors
 ============
 
-[![Alt text](https://travis-ci.org/Bara20/Multi-Colors.svg?branch=master)](https://travis-ci.org/Bara20/Multi-Colors)
+[![Alt text](https://travis-ci.org/Bara/Multi-Colors.svg?branch=master)](https://travis-ci.org/Bara/Multi-Colors)
 
 (based on Stamm-Colors) is a summary of Colors and More Colors. Depending on the game More Colors will be used as default. Should the game be CS:GO Colors will be used. The include providing a perfect base for plugins supporting multiple games.
 
@@ -29,4 +29,4 @@ By using C* Functions, offers these include a good compatibility to Colors and M
  + More Colors: https://forums.alliedmods.net/showthread.php?t=185016
 
 ### Download:
- + https://github.com/Bara20/Multi-Colors
+ + https://github.com/Bara/Multi-Colors
