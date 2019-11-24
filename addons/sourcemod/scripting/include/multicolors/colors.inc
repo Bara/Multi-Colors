@@ -614,8 +614,7 @@ stock int C_ShowActivity(int client, const char[] format, any ...) {
 
 		GetClientName(client, name, sizeof(name));
 		AdminId id = GetUserAdmin(client);
-		if (id == INVALID_ADMIN_ID
-		|| !GetAdminFlag(id, Admin_Generic, Access_Effective)) {
+		if (id == INVALID_ADMIN_ID || !GetAdminFlag(id, Admin_Generic, Access_Effective)) {
 			sign = "PLAYER";
 		}
 
@@ -642,16 +641,13 @@ stock int C_ShowActivity(int client, const char[] format, any ...) {
 	}
 
 	for (int i = 1; i <= MaxClients; ++i) {
-		if (!IsClientInGame(i)
-		|| IsFakeClient(i)
-		|| (display_in_chat && i == client)) {
+		if (!IsClientInGame(i) || IsFakeClient(i) || (display_in_chat && i == client)) {
 			continue;
 		}
 
 		AdminId id = GetUserAdmin(i);
 		SetGlobalTransTarget(i);
-		if (id == INVALID_ADMIN_ID
-		|| !GetAdminFlag(id, Admin_Generic, Access_Effective)) {
+		if (id == INVALID_ADMIN_ID || !GetAdminFlag(id, Admin_Generic, Access_Effective)) {
 			/* Treat this as a normal user. */
 			if ((value & 1) | (value & 2)) {
 				char newsign[MAX_NAME_LENGTH];
@@ -671,9 +667,7 @@ stock int C_ShowActivity(int client, const char[] format, any ...) {
 		else {
 			/* Treat this as an admin user */
 			bool is_root = GetAdminFlag(id, Admin_Root, Access_Effective);
-			if ((value & 4)
-			|| (value & 8)
-			|| ((value & 16) && is_root)) {
+			if ((value & 4) || (value & 8) || ((value & 16) && is_root)) {
 				char newsign[MAX_NAME_LENGTH];
 				
 				if ((value & 8) || ((value & 16) && is_root) || (i == client)) {
@@ -724,8 +718,7 @@ stock int C_ShowActivityEx(int client, const char[] tag, const char[] format, an
 
 		GetClientName(client, name, sizeof(name));
 		AdminId id = GetUserAdmin(client);
-		if (id == INVALID_ADMIN_ID
-		|| !GetAdminFlag(id, Admin_Generic, Access_Effective)) {
+		if (id == INVALID_ADMIN_ID || !GetAdminFlag(id, Admin_Generic, Access_Effective)) {
 			sign = "PLAYER";
 		}
 
@@ -883,9 +876,7 @@ stock int C_ShowActivity2(int client, const char[] tag, const char[] format, any
 		else {
 			/* Treat this as an admin user */
 			bool is_root = GetAdminFlag(id, Admin_Root, Access_Effective);
-			if ((value & 4)
-			|| (value & 8)
-			|| ((value & 16) && is_root)) {
+			if ((value & 4) || (value & 8) || ((value & 16) && is_root)) {
 				char newsign[MAX_NAME_LENGTH];
 
 				if ((value & 8) || ((value & 16) && is_root)) {
