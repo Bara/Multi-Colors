@@ -463,7 +463,7 @@ stock void MC_ReplyToCommandEx(int client, int author, const char[] message, any
  * @error
  */
 stock int MC_ShowActivity(int client, const char[] format, any ...) {
-	if (sm_show_activity == null) {}
+	if (sm_show_activity == null) {
 		sm_show_activity = FindConVar("sm_show_activity");
 	}
 
