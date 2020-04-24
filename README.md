@@ -1,7 +1,11 @@
 Multi Colors
 ============
 
-[![Alt text](https://travis-ci.org/Bara/Multi-Colors.svg?branch=master)](https://travis-ci.org/Bara/Multi-Colors)
+
+| Action Status | Discord |
+|:-------------:|:-------:|
+| [![Action Status](https://github.com/Bara/Multi-Colors/workflows/Compile%20with%20SourceMod/badge.svg)](https://github.com/Bara/Multi-Colors/actions) | [![Discord](https://img.shields.io/discord/388685157286019072.svg)](https://discord.gg/eCsqjcD) |
+
 
 (based on Stamm-Colors) is a summary of Colors and More Colors. Depending on the game More Colors will be used as default. Should the game be CS:GO Colors will be used. The include providing a perfect base for plugins supporting multiple games.
 
