@@ -2,7 +2,7 @@
 #pragma newdecls required
 
 #include <sourcemod>
-#include <multicolors>
+#include "include/multicolors"
 
 public void OnPluginStart()
 {
