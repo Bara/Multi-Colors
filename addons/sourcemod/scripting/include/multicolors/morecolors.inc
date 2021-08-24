@@ -1,5 +1,5 @@
 // MOAR COLORS
-// By Dr. McKay
+// By Dr. McKay, maxime1907
 // Inspired by: https://forums.alliedmods.net/showthread.php?t=96831
 
 #if defined _more_colors_included
@@ -14,16 +14,17 @@
 #define MC_MAX_MESSAGE_LENGTH   256
 #define MAX_BUFFER_LENGTH       (MC_MAX_MESSAGE_LENGTH * 4)
 
-#define MCOLOR_RED              0xFF4040
-#define MCOLOR_BLUE             0x99CCFF
-#define MCOLOR_GRAY             0xCCCCCC
-#define MCOLOR_GREEN            0x3EFF3E
-
 #define MC_GAME_DODS           0
 
 bool MC_SkipList[MAXPLAYERS+1];
 StringMap MC_Trie;
-int MC_TeamColors[][] = {{0xCCCCCC, 0x4D7942, 0xFF4040}}; // Multi-dimensional array for games that don't support SayText2. First index is the game index (as defined by the GAME_ defines), second index is team. 0 = spectator, 1 = team1, 2 = team2
+int MC_TeamColors[][] = {
+	{
+		0xCCCCCC,
+		0x4D7942,
+		0xFF4040
+	}
+}; // Multi-dimensional array for games that don't support SayText2. First index is the game index (as defined by the GAME_ defines), second index is team. 0 = spectator, 1 = team1, 2 = team2
 
 static ConVar sm_show_activity;
 
@@ -161,6 +162,21 @@ stock void MC_PrintToChatAllEx(int author, const char[] message, any ...) {
 }
 
 /**
+ *
+ * Adds a whitespace for games other than Source2009
+ *
+ * @param buffer	Buffer that contains the chat message
+ * @param size		Size of the buffer
+ */
+stock void MC_AddWhiteSpace(char[] buffer, int size)
+{
+	EngineVersion iEngineVersion = GetEngineVersion();
+	if (!IsSource2009() && !(iEngineVersion == Engine_Left4Dead) && !(iEngineVersion == Engine_Left4Dead2)) {
+		Format(buffer, size, " %s", buffer);
+	}
+}
+
+/**
  * Sends a SayText2 usermessage
  * 
  * @param client	Client to send usermessage to
@@ -173,6 +189,8 @@ stock void MC_SendMessage(int client, const char[] message, int author = 0) {
 
 	char buffer[MC_MAX_MESSAGE_LENGTH];
 	strcopy(buffer, sizeof(buffer), message);
+
+	MC_AddWhiteSpace(buffer, sizeof(buffer));
 
 	UserMsg index = GetUserMessageId("SayText2");
 	if (index == INVALID_MESSAGE_ID) {
@@ -240,6 +258,11 @@ stock void MC_CheckTrie() {
 	}
 }
 
+stock StringMap MC_GetTrie() {
+	MC_CheckTrie();
+	return MC_Trie;
+}
+
 /**
  * Replaces color tags in a string with color codes (used internally by MC_PrintToChat, MC_PrintToChatAll, MC_PrintToChatEx, and MC_PrintToChatAllEx
  *
@@ -252,10 +275,7 @@ stock void MC_CheckTrie() {
  */
 stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags = false, int maxlen = MAX_BUFFER_LENGTH) {
 	MC_CheckTrie();
-	if (!removeTags) {
-		ReplaceString(buffer, maxlen, "{default}", "\x01", false);
-	}
-	else {
+	if (removeTags) {
 		ReplaceString(buffer, maxlen, "{default}", "", false);
 		ReplaceString(buffer, maxlen, "{teamcolor}", "", false);
 	}
@@ -273,7 +293,7 @@ stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags =
 	}
 
 	int cursor = 0;
-	int value;
+	char value[32];
 	char tag[32], buff[32]; 
 	char[] output = new char[maxlen];
 
@@ -313,7 +333,7 @@ stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags =
 				ReplaceString(output, maxlen, tag, buff, false);
 			}
 		}
-		else if (!MC_Trie.GetValue(buff, value)) {
+		else if (!MC_Trie.GetString(buff, value, sizeof(value))) {
 			continue;
 		}
 
@@ -321,8 +341,7 @@ stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags =
 			ReplaceString(output, maxlen, tag, "", false);
 		}
 		else {
-			Format(buff, sizeof(buff), "\x07%06X", value);
-			ReplaceString(output, maxlen, tag, buff, false);
+			ReplaceString(output, maxlen, tag, value, false);
 		}
 	}
 	LogError("[MORE COLORS] Infinite loop broken.");
@@ -372,9 +391,9 @@ stock void MC_StrToLower(char[] buffer) {
 stock bool MC_AddColor(const char[] name, int color) {
 	MC_CheckTrie();
 
-	int value;
+	char value[32];
 
-	if (MC_Trie.GetValue(name, value)) {
+	if (MC_Trie.GetString(name, value, sizeof(value))) {
 		return false;
 	}
 
@@ -773,220 +792,282 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
  */
 stock bool CColorExists(const char[] color) {
 	MC_CheckTrie();
-	int temp;
-	return MC_Trie.GetValue(color, temp);
+	char temp[32];
+	return MC_Trie.GetString(color, temp, sizeof(temp));
 }
 
 /**
  * Returns the hexadecimal representation of a client's team color (will NOT initialize the trie)
  *
  * @param client		Client to get the team color for
- * @return				Client's team color in hexadecimal, or green if unknown
+ * @param value			Client's team color, or green if unknown
+ * @param size			Size of the value parameter
+ * @return				Client's team color has been found
  * On error/Errors:		If the client index passed is invalid or not in game.
  */
-stock int CGetTeamColor(int client) {
+stock bool CGetTeamColor(int client, char[] value, int size) {
 	if (client <= 0 || client > MaxClients) {
 		ThrowError("Invalid client index %i", client);
+		return false;
 	}
 
 	if (!IsClientInGame(client)) {
 		ThrowError("Client %i is not in game", client);
+		return false;
 	}
 
-	int value;
+	StringMap smTrie = MC_GetTrie();
+	if (smTrie == null)
+	{
+		ThrowError("No color in StringMap tree", client);
+		return false;
+	}
+
 	switch(GetClientTeam(client)) {
 		case 1: {
-			value = MCOLOR_GRAY;
+			smTrie.GetString("gray", value, size);
 		}
 		case 2: {
-			value = MCOLOR_RED;
+			smTrie.GetString("red", value, size);
 		}
 		case 3: {
-			value = MCOLOR_BLUE;
+			smTrie.GetString("blue", value, size);
 		}
 		default: {
-			value = MCOLOR_GREEN;
+			smTrie.GetString("green", value, size);
 		}
 	}
 
-	return value;
+	return true;
 }
 
 stock StringMap MC_InitColorTrie() {
 	StringMap hTrie = new StringMap();
-	hTrie.SetValue("aliceblue", 0xF0F8FF);
-	hTrie.SetValue("allies", 0x4D7942); // same as Allies team in DoD:S
-	hTrie.SetValue("ancient", 0xEB4B4B); // same as Ancient item rarity in Dota 2
-	hTrie.SetValue("antiquewhite", 0xFAEBD7);
-	hTrie.SetValue("aqua", 0x00FFFF);
-	hTrie.SetValue("aquamarine", 0x7FFFD4);
-	hTrie.SetValue("arcana", 0xADE55C); // same as Arcana item rarity in Dota 2
-	hTrie.SetValue("axis", 0xFF4040); // same as Axis team in DoD:S
-	hTrie.SetValue("azure", 0x007FFF);
-	hTrie.SetValue("beige", 0xF5F5DC);
-	hTrie.SetValue("bisque", 0xFFE4C4);
-	hTrie.SetValue("black", 0x000000);
-	hTrie.SetValue("blanchedalmond", 0xFFEBCD);
-	hTrie.SetValue("blue", 0x99CCFF); // same as BLU/Counter-Terrorist team color
-	hTrie.SetValue("blueviolet", 0x8A2BE2);
-	hTrie.SetValue("brown", 0xA52A2A);
-	hTrie.SetValue("burlywood", 0xDEB887);
-	hTrie.SetValue("cadetblue", 0x5F9EA0);
-	hTrie.SetValue("chartreuse", 0x7FFF00);
-	hTrie.SetValue("chocolate", 0xD2691E);
-	hTrie.SetValue("collectors", 0xAA0000); // same as Collector's item quality in TF2
-	hTrie.SetValue("common", 0xB0C3D9); // same as Common item rarity in Dota 2
-	hTrie.SetValue("community", 0x70B04A); // same as Community item quality in TF2
-	hTrie.SetValue("coral", 0xFF7F50);
-	hTrie.SetValue("cornflowerblue", 0x6495ED);
-	hTrie.SetValue("cornsilk", 0xFFF8DC);
-	hTrie.SetValue("corrupted", 0xA32C2E); // same as Corrupted item quality in Dota 2
-	hTrie.SetValue("crimson", 0xDC143C);
-	hTrie.SetValue("cyan", 0x00FFFF);
-	hTrie.SetValue("darkblue", 0x00008B);
-	hTrie.SetValue("darkcyan", 0x008B8B);
-	hTrie.SetValue("darkgoldenrod", 0xB8860B);
-	hTrie.SetValue("darkgray", 0xA9A9A9);
-	hTrie.SetValue("darkgrey", 0xA9A9A9);
-	hTrie.SetValue("darkgreen", 0x006400);
-	hTrie.SetValue("darkkhaki", 0xBDB76B);
-	hTrie.SetValue("darkmagenta", 0x8B008B);
-	hTrie.SetValue("darkolivegreen", 0x556B2F);
-	hTrie.SetValue("darkorange", 0xFF8C00);
-	hTrie.SetValue("darkorchid", 0x9932CC);
-	hTrie.SetValue("darkred", 0x8B0000);
-	hTrie.SetValue("darksalmon", 0xE9967A);
-	hTrie.SetValue("darkseagreen", 0x8FBC8F);
-	hTrie.SetValue("darkslateblue", 0x483D8B);
-	hTrie.SetValue("darkslategray", 0x2F4F4F);
-	hTrie.SetValue("darkslategrey", 0x2F4F4F);
-	hTrie.SetValue("darkturquoise", 0x00CED1);
-	hTrie.SetValue("darkviolet", 0x9400D3);
-	hTrie.SetValue("deeppink", 0xFF1493);
-	hTrie.SetValue("deepskyblue", 0x00BFFF);
-	hTrie.SetValue("dimgray", 0x696969);
-	hTrie.SetValue("dimgrey", 0x696969);
-	hTrie.SetValue("dodgerblue", 0x1E90FF);
-	hTrie.SetValue("exalted", 0xCCCCCD); // same as Exalted item quality in Dota 2
-	hTrie.SetValue("firebrick", 0xB22222);
-	hTrie.SetValue("floralwhite", 0xFFFAF0);
-	hTrie.SetValue("forestgreen", 0x228B22);
-	hTrie.SetValue("frozen", 0x4983B3); // same as Frozen item quality in Dota 2
-	hTrie.SetValue("fuchsia", 0xFF00FF);
-	hTrie.SetValue("fullblue", 0x0000FF);
-	hTrie.SetValue("fullred", 0xFF0000);
-	hTrie.SetValue("gainsboro", 0xDCDCDC);
-	hTrie.SetValue("genuine", 0x4D7455); // same as Genuine item quality in TF2
-	hTrie.SetValue("ghostwhite", 0xF8F8FF);
-	hTrie.SetValue("gold", 0xFFD700);
-	hTrie.SetValue("goldenrod", 0xDAA520);
-	hTrie.SetValue("gray", 0xCCCCCC); // same as spectator team color
-	hTrie.SetValue("grey", 0xCCCCCC);
-	hTrie.SetValue("green", 0x3EFF3E);
-	hTrie.SetValue("greenyellow", 0xADFF2F);
-	hTrie.SetValue("haunted", 0x38F3AB); // same as Haunted item quality in TF2
-	hTrie.SetValue("honeydew", 0xF0FFF0);
-	hTrie.SetValue("hotpink", 0xFF69B4);
-	hTrie.SetValue("immortal", 0xE4AE33); // same as Immortal item rarity in Dota 2
-	hTrie.SetValue("indianred", 0xCD5C5C);
-	hTrie.SetValue("indigo", 0x4B0082);
-	hTrie.SetValue("ivory", 0xFFFFF0);
-	hTrie.SetValue("khaki", 0xF0E68C);
-	hTrie.SetValue("lavender", 0xE6E6FA);
-	hTrie.SetValue("lavenderblush", 0xFFF0F5);
-	hTrie.SetValue("lawngreen", 0x7CFC00);
-	hTrie.SetValue("legendary", 0xD32CE6); // same as Legendary item rarity in Dota 2
-	hTrie.SetValue("lemonchiffon", 0xFFFACD);
-	hTrie.SetValue("lightblue", 0xADD8E6);
-	hTrie.SetValue("lightcoral", 0xF08080);
-	hTrie.SetValue("lightcyan", 0xE0FFFF);
-	hTrie.SetValue("lightgoldenrodyellow", 0xFAFAD2);
-	hTrie.SetValue("lightgray", 0xD3D3D3);
-	hTrie.SetValue("lightgrey", 0xD3D3D3);
-	hTrie.SetValue("lightgreen", 0x99FF99);
-	hTrie.SetValue("lightpink", 0xFFB6C1);
-	hTrie.SetValue("lightsalmon", 0xFFA07A);
-	hTrie.SetValue("lightseagreen", 0x20B2AA);
-	hTrie.SetValue("lightskyblue", 0x87CEFA);
-	hTrie.SetValue("lightslategray", 0x778899);
-	hTrie.SetValue("lightslategrey", 0x778899);
-	hTrie.SetValue("lightsteelblue", 0xB0C4DE);
-	hTrie.SetValue("lightyellow", 0xFFFFE0);
-	hTrie.SetValue("lime", 0x00FF00);
-	hTrie.SetValue("limegreen", 0x32CD32);
-	hTrie.SetValue("linen", 0xFAF0E6);
-	hTrie.SetValue("magenta", 0xFF00FF);
-	hTrie.SetValue("maroon", 0x800000);
-	hTrie.SetValue("mediumaquamarine", 0x66CDAA);
-	hTrie.SetValue("mediumblue", 0x0000CD);
-	hTrie.SetValue("mediumorchid", 0xBA55D3);
-	hTrie.SetValue("mediumpurple", 0x9370D8);
-	hTrie.SetValue("mediumseagreen", 0x3CB371);
-	hTrie.SetValue("mediumslateblue", 0x7B68EE);
-	hTrie.SetValue("mediumspringgreen", 0x00FA9A);
-	hTrie.SetValue("mediumturquoise", 0x48D1CC);
-	hTrie.SetValue("mediumvioletred", 0xC71585);
-	hTrie.SetValue("midnightblue", 0x191970);
-	hTrie.SetValue("mintcream", 0xF5FFFA);
-	hTrie.SetValue("mistyrose", 0xFFE4E1);
-	hTrie.SetValue("moccasin", 0xFFE4B5);
-	hTrie.SetValue("mythical", 0x8847FF); // same as Mythical item rarity in Dota 2
-	hTrie.SetValue("navajowhite", 0xFFDEAD);
-	hTrie.SetValue("navy", 0x000080);
-	hTrie.SetValue("normal", 0xB2B2B2); // same as Normal item quality in TF2
-	hTrie.SetValue("oldlace", 0xFDF5E6);
-	hTrie.SetValue("olive", 0x9EC34F);
-	hTrie.SetValue("olivedrab", 0x6B8E23);
-	hTrie.SetValue("orange", 0xFFA500);
-	hTrie.SetValue("orangered", 0xFF4500);
-	hTrie.SetValue("orchid", 0xDA70D6);
-	hTrie.SetValue("palegoldenrod", 0xEEE8AA);
-	hTrie.SetValue("palegreen", 0x98FB98);
-	hTrie.SetValue("paleturquoise", 0xAFEEEE);
-	hTrie.SetValue("palevioletred", 0xD87093);
-	hTrie.SetValue("papayawhip", 0xFFEFD5);
-	hTrie.SetValue("peachpuff", 0xFFDAB9);
-	hTrie.SetValue("peru", 0xCD853F);
-	hTrie.SetValue("pink", 0xFFC0CB);
-	hTrie.SetValue("plum", 0xDDA0DD);
-	hTrie.SetValue("powderblue", 0xB0E0E6);
-	hTrie.SetValue("purple", 0x800080);
-	hTrie.SetValue("rare", 0x4B69FF); // same as Rare item rarity in Dota 2
-	hTrie.SetValue("red", 0xFF4040); // same as RED/Terrorist team color
-	hTrie.SetValue("rosybrown", 0xBC8F8F);
-	hTrie.SetValue("royalblue", 0x4169E1);
-	hTrie.SetValue("saddlebrown", 0x8B4513);
-	hTrie.SetValue("salmon", 0xFA8072);
-	hTrie.SetValue("sandybrown", 0xF4A460);
-	hTrie.SetValue("seagreen", 0x2E8B57);
-	hTrie.SetValue("seashell", 0xFFF5EE);
-	hTrie.SetValue("selfmade", 0x70B04A); // same as Self-Made item quality in TF2
-	hTrie.SetValue("sienna", 0xA0522D);
-	hTrie.SetValue("silver", 0xC0C0C0);
-	hTrie.SetValue("skyblue", 0x87CEEB);
-	hTrie.SetValue("slateblue", 0x6A5ACD);
-	hTrie.SetValue("slategray", 0x708090);
-	hTrie.SetValue("slategrey", 0x708090);
-	hTrie.SetValue("snow", 0xFFFAFA);
-	hTrie.SetValue("springgreen", 0x00FF7F);
-	hTrie.SetValue("steelblue", 0x4682B4);
-	hTrie.SetValue("strange", 0xCF6A32); // same as Strange item quality in TF2
-	hTrie.SetValue("tan", 0xD2B48C);
-	hTrie.SetValue("teal", 0x008080);
-	hTrie.SetValue("thistle", 0xD8BFD8);
-	hTrie.SetValue("tomato", 0xFF6347);
-	hTrie.SetValue("turquoise", 0x40E0D0);
-	hTrie.SetValue("uncommon", 0xB0C3D9); // same as Uncommon item rarity in Dota 2
-	hTrie.SetValue("unique", 0xFFD700); // same as Unique item quality in TF2
-	hTrie.SetValue("unusual", 0x8650AC); // same as Unusual item quality in TF2
-	hTrie.SetValue("valve", 0xA50F79); // same as Valve item quality in TF2
-	hTrie.SetValue("vintage", 0x476291); // same as Vintage item quality in TF2
-	hTrie.SetValue("violet", 0xEE82EE);
-	hTrie.SetValue("wheat", 0xF5DEB3);
-	hTrie.SetValue("white", 0xFFFFFF);
-	hTrie.SetValue("whitesmoke", 0xF5F5F5);
-	hTrie.SetValue("yellow", 0xFFFF00);
-	hTrie.SetValue("yellowgreen", 0x9ACD32);
-	
+
+	if (IsSource2009()) {
+		SetTrieString(hTrie, "default", "\x01");
+		SetTrieString(hTrie, "teamcolor", "\x03");
+
+		SetTrieString(hTrie, "aliceblue", "\x07F0F8FF");
+		SetTrieString(hTrie, "allies", "\x074D7942"); // same as Allies team in DoD:S
+		SetTrieString(hTrie, "ancient", "\x07EB4B4B"); // same as Ancient item rarity in Dota 2
+		SetTrieString(hTrie, "antiquewhite", "\x07FAEBD7");
+		SetTrieString(hTrie, "aqua", "\x0700FFFF");
+		SetTrieString(hTrie, "aquamarine", "\x077FFFD4");
+		SetTrieString(hTrie, "arcana", "\x07ADE55C"); // same as Arcana item rarity in Dota 2
+		SetTrieString(hTrie, "axis", "\x07FF4040"); // same as Axis team in DoD:S
+		SetTrieString(hTrie, "azure", "\x07007FFF");
+		SetTrieString(hTrie, "beige", "\x07F5F5DC");
+		SetTrieString(hTrie, "bisque", "\x07FFE4C4");
+		SetTrieString(hTrie, "black", "\x07000000");
+		SetTrieString(hTrie, "blanchedalmond", "\x07FFEBCD");
+		SetTrieString(hTrie, "blue", "\x0799CCFF"); // same as BLU/Counter-Terrorist team color
+		SetTrieString(hTrie, "blueviolet", "\x078A2BE2");
+		SetTrieString(hTrie, "brown", "\x07A52A2A");
+		SetTrieString(hTrie, "burlywood", "\x07DEB887");
+		SetTrieString(hTrie, "cadetblue", "\x075F9EA0");
+		SetTrieString(hTrie, "chartreuse", "\x077FFF00");
+		SetTrieString(hTrie, "chocolate", "\x07D2691E");
+		SetTrieString(hTrie, "collectors", "\x07AA0000"); // same as Collector's item quality in TF2
+		SetTrieString(hTrie, "common", "\x07B0C3D9"); // same as Common item rarity in Dota 2
+		SetTrieString(hTrie, "community", "\x0770B04A"); // same as Community item quality in TF2
+		SetTrieString(hTrie, "coral", "\x07FF7F50");
+		SetTrieString(hTrie, "cornflowerblue", "\x076495ED");
+		SetTrieString(hTrie, "cornsilk", "\x07FFF8DC");
+		SetTrieString(hTrie, "corrupted", "\x07A32C2E"); // same as Corrupted item quality in Dota 2
+		SetTrieString(hTrie, "crimson", "\x07DC143C");
+		SetTrieString(hTrie, "cyan", "\x0700FFFF");
+		SetTrieString(hTrie, "darkblue", "\x0700008B");
+		SetTrieString(hTrie, "darkcyan", "\x07008B8B");
+		SetTrieString(hTrie, "darkgoldenrod", "\x07B8860B");
+		SetTrieString(hTrie, "darkgray", "\x07A9A9A9");
+		SetTrieString(hTrie, "darkgrey", "\x07A9A9A9");
+		SetTrieString(hTrie, "darkgreen", "\x07006400");
+		SetTrieString(hTrie, "darkkhaki", "\x07BDB76B");
+		SetTrieString(hTrie, "darkmagenta", "\x078B008B");
+		SetTrieString(hTrie, "darkolivegreen", "\x07556B2F");
+		SetTrieString(hTrie, "darkorange", "\x07FF8C00");
+		SetTrieString(hTrie, "darkorchid", "\x079932CC");
+		SetTrieString(hTrie, "darkred", "\x078B0000");
+		SetTrieString(hTrie, "darksalmon", "\x07E9967A");
+		SetTrieString(hTrie, "darkseagreen", "\x078FBC8F");
+		SetTrieString(hTrie, "darkslateblue", "\x07483D8B");
+		SetTrieString(hTrie, "darkslategray", "\x072F4F4F");
+		SetTrieString(hTrie, "darkslategrey", "\x072F4F4F");
+		SetTrieString(hTrie, "darkturquoise", "\x0700CED1");
+		SetTrieString(hTrie, "darkviolet", "\x079400D3");
+		SetTrieString(hTrie, "deeppink", "\x07FF1493");
+		SetTrieString(hTrie, "deepskyblue", "\x0700BFFF");
+		SetTrieString(hTrie, "dimgray", "\x07696969");
+		SetTrieString(hTrie, "dimgrey", "\x07696969");
+		SetTrieString(hTrie, "dodgerblue", "\x071E90FF");
+		SetTrieString(hTrie, "exalted", "\x07CCCCCD"); // same as Exalted item quality in Dota 2
+		SetTrieString(hTrie, "firebrick", "\x07B22222");
+		SetTrieString(hTrie, "floralwhite", "\x07FFFAF0");
+		SetTrieString(hTrie, "forestgreen", "\x07228B22");
+		SetTrieString(hTrie, "frozen", "\x074983B3"); // same as Frozen item quality in Dota 2
+		SetTrieString(hTrie, "fuchsia", "\x07FF00FF");
+		SetTrieString(hTrie, "fullblue", "\x070000FF");
+		SetTrieString(hTrie, "fullred", "\x07FF0000");
+		SetTrieString(hTrie, "gainsboro", "\x07DCDCDC");
+		SetTrieString(hTrie, "genuine", "\x074D7455"); // same as Genuine item quality in TF2
+		SetTrieString(hTrie, "ghostwhite", "\x07F8F8FF");
+		SetTrieString(hTrie, "gold", "\x07FFD700");
+		SetTrieString(hTrie, "goldenrod", "\x07DAA520");
+		SetTrieString(hTrie, "gray", "\x07CCCCCC"); // same as spectator team color
+		SetTrieString(hTrie, "grey", "\x07CCCCCC");
+		SetTrieString(hTrie, "green", "\x073EFF3E");
+		SetTrieString(hTrie, "greenyellow", "\x07ADFF2F");
+		SetTrieString(hTrie, "haunted", "\x0738F3AB"); // same as Haunted item quality in TF2
+		SetTrieString(hTrie, "honeydew", "\x07F0FFF0");
+		SetTrieString(hTrie, "hotpink", "\x07FF69B4");
+		SetTrieString(hTrie, "immortal", "\x07E4AE33"); // same as Immortal item rarity in Dota 2
+		SetTrieString(hTrie, "indianred", "\x07CD5C5C");
+		SetTrieString(hTrie, "indigo", "\x074B0082");
+		SetTrieString(hTrie, "ivory", "\x07FFFFF0");
+		SetTrieString(hTrie, "khaki", "\x07F0E68C");
+		SetTrieString(hTrie, "lavender", "\x07E6E6FA");
+		SetTrieString(hTrie, "lavenderblush", "\x07FFF0F5");
+		SetTrieString(hTrie, "lawngreen", "\x077CFC00");
+		SetTrieString(hTrie, "legendary", "\x07D32CE6"); // same as Legendary item rarity in Dota 2
+		SetTrieString(hTrie, "lemonchiffon", "\x07FFFACD");
+		SetTrieString(hTrie, "lightblue", "\x07ADD8E6");
+		SetTrieString(hTrie, "lightcoral", "\x07F08080");
+		SetTrieString(hTrie, "lightcyan", "\x07E0FFFF");
+		SetTrieString(hTrie, "lightgoldenrodyellow", "\x07FAFAD2");
+		SetTrieString(hTrie, "lightgray", "\x07D3D3D3");
+		SetTrieString(hTrie, "lightgrey", "\x07D3D3D3");
+		SetTrieString(hTrie, "lightgreen", "\x0799FF99");
+		SetTrieString(hTrie, "lightpink", "\x07FFB6C1");
+		SetTrieString(hTrie, "lightsalmon", "\x07FFA07A");
+		SetTrieString(hTrie, "lightseagreen", "\x0720B2AA");
+		SetTrieString(hTrie, "lightskyblue", "\x0787CEFA");
+		SetTrieString(hTrie, "lightslategray", "\x07778899");
+		SetTrieString(hTrie, "lightslategrey", "\x07778899");
+		SetTrieString(hTrie, "lightsteelblue", "\x07B0C4DE");
+		SetTrieString(hTrie, "lightyellow", "\x07FFFFE0");
+		SetTrieString(hTrie, "lime", "\x0700FF00");
+		SetTrieString(hTrie, "limegreen", "\x0732CD32");
+		SetTrieString(hTrie, "linen", "\x07FAF0E6");
+		SetTrieString(hTrie, "magenta", "\x07FF00FF");
+		SetTrieString(hTrie, "maroon", "\x07800000");
+		SetTrieString(hTrie, "mediumaquamarine", "\x0766CDAA");
+		SetTrieString(hTrie, "mediumblue", "\x070000CD");
+		SetTrieString(hTrie, "mediumorchid", "\x07BA55D3");
+		SetTrieString(hTrie, "mediumpurple", "\x079370D8");
+		SetTrieString(hTrie, "mediumseagreen", "\x073CB371");
+		SetTrieString(hTrie, "mediumslateblue", "\x077B68EE");
+		SetTrieString(hTrie, "mediumspringgreen", "\x0700FA9A");
+		SetTrieString(hTrie, "mediumturquoise", "\x0748D1CC");
+		SetTrieString(hTrie, "mediumvioletred", "\x07C71585");
+		SetTrieString(hTrie, "midnightblue", "\x07191970");
+		SetTrieString(hTrie, "mintcream", "\x07F5FFFA");
+		SetTrieString(hTrie, "mistyrose", "\x07FFE4E1");
+		SetTrieString(hTrie, "moccasin", "\x07FFE4B5");
+		SetTrieString(hTrie, "mythical", "\x078847FF"); // same as Mythical item rarity in Dota 2
+		SetTrieString(hTrie, "navajowhite", "\x07FFDEAD");
+		SetTrieString(hTrie, "navy", "\x07000080");
+		SetTrieString(hTrie, "normal", "\x07B2B2B2"); // same as Normal item quality in TF2
+		SetTrieString(hTrie, "oldlace", "\x07FDF5E6");
+		SetTrieString(hTrie, "olive", "\x079EC34F");
+		SetTrieString(hTrie, "olivedrab", "\x076B8E23");
+		SetTrieString(hTrie, "orange", "\x07FFA500");
+		SetTrieString(hTrie, "orangered", "\x07FF4500");
+		SetTrieString(hTrie, "orchid", "\x07DA70D6");
+		SetTrieString(hTrie, "palegoldenrod", "\x07EEE8AA");
+		SetTrieString(hTrie, "palegreen", "\x0798FB98");
+		SetTrieString(hTrie, "paleturquoise", "\x07AFEEEE");
+		SetTrieString(hTrie, "palevioletred", "\x07D87093");
+		SetTrieString(hTrie, "papayawhip", "\x07FFEFD5");
+		SetTrieString(hTrie, "peachpuff", "\x07FFDAB9");
+		SetTrieString(hTrie, "peru", "\x07CD853F");
+		SetTrieString(hTrie, "pink", "\x07FFC0CB");
+		SetTrieString(hTrie, "plum", "\x07DDA0DD");
+		SetTrieString(hTrie, "powderblue", "\x07B0E0E6");
+		SetTrieString(hTrie, "purple", "\x07800080");
+		SetTrieString(hTrie, "rare", "\x074B69FF"); // same as Rare item rarity in Dota 2
+		SetTrieString(hTrie, "red", "\x07FF4040"); // same as RED/Terrorist team color
+		SetTrieString(hTrie, "rosybrown", "\x07BC8F8F");
+		SetTrieString(hTrie, "royalblue", "\x074169E1");
+		SetTrieString(hTrie, "saddlebrown", "\x078B4513");
+		SetTrieString(hTrie, "salmon", "\x07FA8072");
+		SetTrieString(hTrie, "sandybrown", "\x07F4A460");
+		SetTrieString(hTrie, "seagreen", "\x072E8B57");
+		SetTrieString(hTrie, "seashell", "\x07FFF5EE");
+		SetTrieString(hTrie, "selfmade", "\x0770B04A"); // same as Self-Made item quality in TF2
+		SetTrieString(hTrie, "sienna", "\x07A0522D");
+		SetTrieString(hTrie, "silver", "\x07C0C0C0");
+		SetTrieString(hTrie, "skyblue", "\x0787CEEB");
+		SetTrieString(hTrie, "slateblue", "\x076A5ACD");
+		SetTrieString(hTrie, "slategray", "\x07708090");
+		SetTrieString(hTrie, "slategrey", "\x07708090");
+		SetTrieString(hTrie, "snow", "\x07FFFAFA");
+		SetTrieString(hTrie, "springgreen", "\x0700FF7F");
+		SetTrieString(hTrie, "steelblue", "\x074682B4");
+		SetTrieString(hTrie, "strange", "\x07CF6A32"); // same as Strange item quality in TF2
+		SetTrieString(hTrie, "tan", "\x07D2B48C");
+		SetTrieString(hTrie, "teal", "\x07008080");
+		SetTrieString(hTrie, "thistle", "\x07D8BFD8");
+		SetTrieString(hTrie, "tomato", "\x07FF6347");
+		SetTrieString(hTrie, "turquoise", "\x0740E0D0");
+		SetTrieString(hTrie, "uncommon", "\x07B0C3D9"); // same as Uncommon item rarity in Dota 2
+		SetTrieString(hTrie, "unique", "\x07FFD700"); // same as Unique item quality in TF2
+		SetTrieString(hTrie, "unusual", "\x078650AC"); // same as Unusual item quality in TF2
+		SetTrieString(hTrie, "valve", "\x07A50F79"); // same as Valve item quality in TF2
+		SetTrieString(hTrie, "vintage", "\x07476291"); // same as Vintage item quality in TF2
+		SetTrieString(hTrie, "violet", "\x07EE82EE");
+		SetTrieString(hTrie, "wheat", "\x07F5DEB3");
+		SetTrieString(hTrie, "white", "\x07FFFFFF");
+		SetTrieString(hTrie, "whitesmoke", "\x07F5F5F5");
+		SetTrieString(hTrie, "yellow", "\x07FFFF00");
+		SetTrieString(hTrie, "yellowgreen", "\x079ACD32");
+	} else {
+		SetTrieString(hTrie, "default", "\x01");       // "\x01" "{default}"
+		SetTrieString(hTrie, "teamcolor", "\x03");     // "\x03" "{lightgreen}" "\x03" "{orange}" "\x03" "{blue}" "\x03" "{purple}"
+
+		SetTrieString(hTrie, "red", "\x07");           // "\x07" "{red}"
+		SetTrieString(hTrie, "lightred", "\x0F");      // "\x0F" "{lightred}"
+		SetTrieString(hTrie, "darkred", "\x02");       // "\x02" "{darkred}"
+		SetTrieString(hTrie, "bluegrey", "\x0A");      // "\x0A" "{lightblue}"
+		SetTrieString(hTrie, "blue", "\x0B");          // "\x0B" "{steelblue}"
+		SetTrieString(hTrie, "darkblue", "\x0C");      // "\x0C" "{darkblue}"
+		SetTrieString(hTrie, "purple", "\x03");
+		SetTrieString(hTrie, "orchid", "\x0E");        // "\x0E" "{pink}"
+		SetTrieString(hTrie, "yellow", "\x09");        // "\x09" "{yellow}"
+		SetTrieString(hTrie, "gold", "\x10");
+		SetTrieString(hTrie, "lightgreen", "\x05");    // "\x05" "{olive}"
+		SetTrieString(hTrie, "green", "\x04");         // "\x04" "{green}"
+		SetTrieString(hTrie, "lime", "\x06");          // "\x06" "{lime}"
+		SetTrieString(hTrie, "grey", "\x08");          // "\x08" "{grey}"
+		SetTrieString(hTrie, "grey2", "\x0D");
+
+		// Additional color names for ckSurf backwards compatibility
+		SetTrieString(hTrie, "bluegray", "\x0A"); // using bluegrey
+		SetTrieString(hTrie, "gray", "\x08"); // using gray
+		SetTrieString(hTrie, "gray2", "\x0D"); // using gray2
+		SetTrieString(hTrie, "orange", "\x10"); // using gold
+		SetTrieString(hTrie, "steelblue", "\x0D"); // using grey2
+		SetTrieString(hTrie, "pink", "\x0E"); // using orchid
+		SetTrieString(hTrie, "lightblue", "\x0A"); // using bluegrey
+		SetTrieString(hTrie, "olive", "\x05"); // using lightgreen
+	}
+
+	// SetTrieString(hTrie, "engine 1", "\x01");
+	// SetTrieString(hTrie, "engine 2", "\x02");
+	// SetTrieString(hTrie, "engine 3", "\x03");
+	// SetTrieString(hTrie, "engine 4", "\x04");
+	// SetTrieString(hTrie, "engine 5", "\x05");
+	// SetTrieString(hTrie, "engine 6", "\x06");
+	// SetTrieString(hTrie, "engine 7", "\x07");
+	// SetTrieString(hTrie, "engine 8", "\x08");
+	// SetTrieString(hTrie, "engine 9", "\x09");
+	// SetTrieString(hTrie, "engine 10", "\x0A");
+	// SetTrieString(hTrie, "engine 11", "\x0B");
+	// SetTrieString(hTrie, "engine 12", "\x0C");
+	// SetTrieString(hTrie, "engine 13", "\x0D");
+	// SetTrieString(hTrie, "engine 14", "\x0E");
+	// SetTrieString(hTrie, "engine 15", "\x0F");
+	// SetTrieString(hTrie, "engine 16", "\x10");
+
 	return hTrie;
 }

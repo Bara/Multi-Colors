@@ -6,7 +6,6 @@
 #define MuCo_VERSION "2.1.2"
 
 #include <multicolors/morecolors>
-#include <multicolors/colors>
 
 /*
 *
@@ -15,6 +14,7 @@
 *       - Powerlord
 *       - exvel
 *       - Dr. McKay
+*       - maxime1907
 *
 *   Based on stamm-colors
 *       - https://github.com/popoklopsi/Stamm/blob/master/include/stamm/stamm-colors.inc
@@ -25,9 +25,6 @@
 
 #define PREFIX_MAX_LENGTH 64
 #define PREFIX_SEPARATOR "{default} "
-
-/* Global var to check whether colors are fixed or not */
-static bool g_bCFixColors;
 
 static char g_sCPrefix[PREFIX_MAX_LENGTH];
 
@@ -66,20 +63,11 @@ stock void CClearPrefix() {
  * @error               If the client is not connected an error will be thrown.
  */
 stock void CPrintToChat(int client, const char[] message, any ...) {
-	char buffer[MAX_MESSAGE_LENGTH];
+	char buffer[MC_MAX_MESSAGE_LENGTH];
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 3);
 
-	if (!g_bCFixColors) {
-		CFixColors();
-	}
-
-	if (!IsSource2009()) {
-		C_PrintToChat(client, "%s%s", g_sCPrefix, buffer);
-	}
-	else {
-		MC_PrintToChat(client, "%s%s", g_sCPrefix, buffer);
-	}
+	MC_PrintToChat(client, "%s%s", g_sCPrefix, buffer);
 }
 
 /**
@@ -90,41 +78,23 @@ stock void CPrintToChat(int client, const char[] message, any ...) {
  * @param message     Message (formatting rules)
  */
 stock void CPrintToChatAll(const char[] message, any ...) {
-	if (!g_bCFixColors) {
-		CFixColors();
-	}
-
 	char buffer[MAX_BUFFER_LENGTH];
-	if (!IsSource2009()) {
-		for (int i = 1; i <= MaxClients; ++i) {
-			if (IsClientInGame(i) && !IsFakeClient(i) && !C_SkipList[i]) {
-				SetGlobalTransTarget(i);
-				VFormat(buffer, sizeof(buffer), message, 2);
+	MC_CheckTrie();
 
-				C_PrintToChat(i, "%s", buffer);
-			}
+	char buffer2[MAX_BUFFER_LENGTH];
 
-			C_SkipList[i] = false;
+	for (int i = 1; i <= MaxClients; ++i) {
+		if (!IsClientInGame(i) || MC_SkipList[i]) {
+			MC_SkipList[i] = false;
+			continue;
 		}
-	}
-	else {
-		MC_CheckTrie();
 
-		char buffer2[MAX_BUFFER_LENGTH];
+		SetGlobalTransTarget(i);
+		Format(buffer, sizeof(buffer), "\x01%s", message);
+		VFormat(buffer2, sizeof(buffer2), buffer, 2);
 
-		for (int i = 1; i <= MaxClients; ++i) {
-			if (!IsClientInGame(i) || MC_SkipList[i]) {
-				MC_SkipList[i] = false;
-				continue;
-			}
-
-			SetGlobalTransTarget(i);
-			Format(buffer, sizeof(buffer), "\x01%s", message);
-			VFormat(buffer2, sizeof(buffer2), buffer, 2);
-
-			MC_ReplaceColorCodes(buffer2);
-			MC_SendMessage(i, buffer2);
-		}
+		MC_ReplaceColorCodes(buffer2);
+		MC_SendMessage(i, buffer2);
 	}
 }
 
@@ -135,13 +105,9 @@ stock void CPrintToChatAll(const char[] message, any ...) {
  * @param message	Message (formatting rules).
  */
 stock void CPrintToChatObservers(int target, const char[] message, any ...) {
-	char buffer[MAX_MESSAGE_LENGTH];
+	char buffer[MC_MAX_MESSAGE_LENGTH];
 	SetGlobalTransTarget(LANG_SERVER);
 	VFormat(buffer, sizeof(buffer), message, 3);
-
-	if (!g_bCFixColors) {
-		CFixColors();
-	}
 
  	for (int client = 1; client <= MaxClients; client++) {
  		if (IsClientInGame(client) && !IsPlayerAlive(client) && !IsFakeClient(client)) {
@@ -165,20 +131,11 @@ stock void CPrintToChatObservers(int target, const char[] message, any ...) {
  * @error               If the client is not connected an error will be thrown.
  */
 stock void CPrintToChatEx(int client, int author, const char[] message, any ...) {
-	char buffer[MAX_MESSAGE_LENGTH];
+	char buffer[MC_MAX_MESSAGE_LENGTH];
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 4);
 
-	if (!g_bCFixColors) {
-		CFixColors();
-	}
-
-	if (!IsSource2009()) {
-		C_PrintToChatEx(client, author, "%s%s", g_sCPrefix, buffer);
-	}
-	else {
-		MC_PrintToChatEx(client, author, "%s%s", g_sCPrefix, buffer);
-	}
+	MC_PrintToChatEx(client, author, "%s%s", g_sCPrefix, buffer);
 }
 
 /**
@@ -188,20 +145,11 @@ stock void CPrintToChatEx(int client, int author, const char[] message, any ...)
  * @param message       Message (formatting rules).
  */
 stock void CPrintToChatAllEx(int author, const char[] message, any ...) {
-	char buffer[MAX_MESSAGE_LENGTH];
+	char buffer[MC_MAX_MESSAGE_LENGTH];
 	SetGlobalTransTarget(LANG_SERVER);
 	VFormat(buffer, sizeof(buffer), message, 3);
 
-	if (!g_bCFixColors) {
-		CFixColors();
-	}
-
-	if (!IsSource2009()) {
-		C_PrintToChatAllEx(author, "%s%s", g_sCPrefix, buffer);
-	}
-	else {
-		MC_PrintToChatAllEx(author, "%s%s", g_sCPrefix, buffer);
-	}
+	MC_PrintToChatAllEx(author, "%s%s", g_sCPrefix, buffer);
 }
 
 /**
@@ -212,13 +160,9 @@ stock void CPrintToChatAllEx(int author, const char[] message, any ...) {
  * @param message	Message (formatting rules).
  */
 stock void CPrintToChatObserversEx(int target, const char[] message, any ...) {
-	char buffer[MAX_MESSAGE_LENGTH];
+	char buffer[MC_MAX_MESSAGE_LENGTH];
 	SetGlobalTransTarget(LANG_SERVER);
 	VFormat(buffer, sizeof(buffer), message, 3);
-
-	if (!g_bCFixColors) {
-		CFixColors();
-	}
 
  	for (int client = 1; client <= MaxClients; client++) {
  		if (IsClientInGame(client) && !IsPlayerAlive(client) && !IsFakeClient(client)) {
@@ -239,20 +183,11 @@ stock void CPrintToChatObserversEx(int target, const char[] message, any ...) {
  * @param message		Message (formatting rules)
  */
 stock void CReplyToCommand(int client, const char[] message, any ...) {
-	char buffer[MAX_MESSAGE_LENGTH];
+	char buffer[MC_MAX_MESSAGE_LENGTH];
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 3);
 
-	if (!g_bCFixColors) {
-		CFixColors();
-	}
-
-	if (!IsSource2009()) {
-		C_ReplyToCommand(client, "%s%s", g_sCPrefix, buffer);
-	}
-	else {
-		MC_ReplyToCommand(client, "%s%s", g_sCPrefix, buffer);
-	}
+	MC_ReplyToCommand(client, "%s%s", g_sCPrefix, buffer);
 }
 
 /**
@@ -263,20 +198,11 @@ stock void CReplyToCommand(int client, const char[] message, any ...) {
  * @param message		Message (formatting rules)
  */
 stock void CReplyToCommandEx(int client, int author, const char[] message, any ...) {
-	char buffer[MAX_MESSAGE_LENGTH];
+	char buffer[MC_MAX_MESSAGE_LENGTH];
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 4);
 
-	if (!g_bCFixColors) {
-		CFixColors();
-	}
-
-	if (!IsSource2009()) {
-		C_ReplyToCommandEx(client, author, "%s%s", g_sCPrefix, buffer);
-	}
-	else {
-		MC_ReplyToCommandEx(client, author, "%s%s", g_sCPrefix, buffer);
-	}
+	MC_ReplyToCommandEx(client, author, "%s%s", g_sCPrefix, buffer);
 }
 
 /**
@@ -285,15 +211,11 @@ stock void CReplyToCommandEx(int client, int author, const char[] message, any .
  * @param message		Message (formatting rules)
  */
 stock void CPrintToServer(const char[] message, any ...) {
-	char buffer[MAX_MESSAGE_LENGTH];
+	char buffer[MC_MAX_MESSAGE_LENGTH];
 	char prefixBuffer[PREFIX_MAX_LENGTH];
 	SetGlobalTransTarget(LANG_SERVER);
 	VFormat(buffer, sizeof(buffer), message, 2);
 	strcopy(prefixBuffer, sizeof(prefixBuffer), g_sCPrefix);
-
-	if (!g_bCFixColors) {
-		CFixColors();
-	}
 
 	CRemoveTags(buffer, sizeof(buffer));
 	CRemoveTags(prefixBuffer, sizeof(prefixBuffer));
@@ -318,20 +240,11 @@ stock void CPrintToServer(const char[] message, any ...) {
  * @error
  */
 stock void CShowActivity(int author, const char[] message, any ...) {
-	char buffer[MAX_MESSAGE_LENGTH];
+	char buffer[MC_MAX_MESSAGE_LENGTH];
 	SetGlobalTransTarget(LANG_SERVER);
 	VFormat(buffer, sizeof(buffer), message, 3);
 
-	if (!g_bCFixColors) {
-		CFixColors();
-	}
-
-	if (!IsSource2009()) {
-		C_ShowActivity(author, "%s", buffer);
-	}
-	else {
-		MC_ShowActivity(author, "%s", buffer);
-	}
+	MC_ShowActivity(author, "%s", buffer);
 }
 
 /**
@@ -346,20 +259,11 @@ stock void CShowActivity(int author, const char[] message, any ...) {
  * @error
  */
 stock void CShowActivityEx(int author, const char[] tag, const char[] message, any ...) {
-	char buffer[MAX_MESSAGE_LENGTH];
+	char buffer[MC_MAX_MESSAGE_LENGTH];
 	SetGlobalTransTarget(LANG_SERVER);
 	VFormat(buffer, sizeof(buffer), message, 4);
 
-	if (!g_bCFixColors) {
-		CFixColors();
-	}
-
-	if (!IsSource2009()) {
-		C_ShowActivityEx(author, tag, "%s", buffer);
-	}
-	else {
-		MC_ShowActivityEx(author, tag, "%s", buffer);
-	}
+	MC_ShowActivityEx(author, tag, "%s", buffer);
 }
 
 /**
@@ -376,20 +280,11 @@ stock void CShowActivityEx(int author, const char[] tag, const char[] message, a
  * @error
  */
  stock void CShowActivity2(int author, const char[] tag, const char[] message, any ...) {
-	char buffer[MAX_MESSAGE_LENGTH];
+	char buffer[MC_MAX_MESSAGE_LENGTH];
 	SetGlobalTransTarget(LANG_SERVER);
 	VFormat(buffer, sizeof(buffer), message, 4);
 
-	if (!g_bCFixColors) {
-		CFixColors();
-	}
-
-	if (!IsSource2009()) {
-		C_ShowActivity2(author, tag, "%s", buffer);
-	}
-	else {
-		MC_ShowActivity2(author, tag, "%s", buffer);
-	}
+	MC_ShowActivity2(author, tag, "%s", buffer);
 }
 
 /**
@@ -399,24 +294,11 @@ stock void CShowActivityEx(int author, const char[] tag, const char[] message, a
  * @param maxlength     Maximum length of the string buffer.
  */
 stock void CFormatColor(char[] message, int maxlength, int author = -1) {
-	if (!g_bCFixColors) {
-		CFixColors();
+	if (author == -1) {
+		author = 0;
 	}
 
-	if (!IsSource2009()) {
-		if (author == 0) {
-			author = -1;
-		}
-
-		C_Format(message, maxlength, author);
-	}
-	else {
-		if (author == -1) {
-			author = 0;
-		}
-
-		MC_ReplaceColorCodes(message, author, false, maxlength);
-	}
+	MC_ReplaceColorCodes(message, author, false, maxlength);
 }
 
 /**
@@ -426,29 +308,7 @@ stock void CFormatColor(char[] message, int maxlength, int author = -1) {
  * @param maxlen		Maximum buffer length
  */
 stock void CRemoveTags(char[] message, int maxlen) {
-	if (!IsSource2009()) {
-		C_RemoveTags(message, maxlen);
-	}
-	else {
-		MC_RemoveTags(message, maxlen);
-	}
-}
-
-/**
- * Fixes missing Lightgreen color.
- */
-stock void CFixColors() {
-	g_bCFixColors = true;
-
-	// Replace lightgreen if not exists
-	if (!C_ColorAllowed(Color_Lightgreen)) {
-		if (C_ColorAllowed(Color_Lime)) {
-			C_ReplaceColor(Color_Lightgreen, Color_Lime);
-		}
-		else if (C_ColorAllowed(Color_Olive)) {
-			C_ReplaceColor(Color_Lightgreen, Color_Olive);
-		}
-	}
+	MC_RemoveTags(message, maxlen);
 }
 
 stock bool IsSource2009() {
