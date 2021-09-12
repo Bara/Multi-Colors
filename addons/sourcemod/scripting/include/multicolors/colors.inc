@@ -842,7 +842,7 @@ stock int C_ShowActivity2(int client, const char[] tag, const char[] format, any
 		 * simply gets added to the console, so we don't want it to print 
 		 * twice.
 		 */
-		C_PrintToChatEx(client, client, "%s%s", szTag, szBuffer);
+		C_PrintToChatEx(client, client, "%s%s", tag, szBuffer);
 	}
 	else {
 		SetGlobalTransTarget(LANG_SERVER);
