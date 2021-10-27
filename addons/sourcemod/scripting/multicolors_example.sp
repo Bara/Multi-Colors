@@ -23,6 +23,8 @@ public Action Command_AddPrefix(int client, int args)
 		CSetPrefix("{orange}[MultiColor]{default}");
 		CReplyToCommand(client, "You can use {yellow}sm_multicolors {default}now !");
 	}
+	
+	return Plugin_Continue;
 }
 
 public Action Command_ClearPrefix(int client, int args)
@@ -37,6 +39,8 @@ public Action Command_ClearPrefix(int client, int args)
 	{
 		CReplyToCommand(client, "You can use {yellow}sm_multicolors {default}now !");
 	}
+	
+	return Plugin_Continue;
 }
 
 public Action Command_MultiColors(int client, int args)
@@ -72,4 +76,6 @@ public Action Command_MultiColors(int client, int args)
 	CPrintToChatObserversEx(client, "CPrintToChatObserversEx - {darkblue}%s - {darkred}%s", "Test", "Test");
 
 	CPrintToServer("CPrintToServer - {darkblue}%s - {darkred}%s", "Test", "Test");
+	
+	return Plugin_Continue;
 }

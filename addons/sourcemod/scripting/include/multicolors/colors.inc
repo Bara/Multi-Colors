@@ -568,7 +568,7 @@ stock void C_SetupProfile() {
 	}
 }
 
-public Action C_Event_MapStart(Event event, const char[] name, bool dontBroadcast) {
+public void  C_Event_MapStart(Event event, const char[] name, bool dontBroadcast) {
 	C_SetupProfile();
 
 	for (int i = 1; i <= MaxClients; ++i) {
