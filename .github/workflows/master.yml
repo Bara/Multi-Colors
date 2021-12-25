@@ -32,5 +32,5 @@ jobs:
       - name: Compile plugin
         run: |
           echo -e "\nCompiling multicolors_example.sp..."
-          spcomp -E -w234 -O2 -v2 -i $SCRIPTING_PATH/include multicolors_example.sp
+          spcomp -E -w234 -O2 -v2 -i$includePath -i$SCRIPTING_PATH/include multicolors_example.sp
         working-directory: ${{ env.SCRIPTING_PATH }}/
