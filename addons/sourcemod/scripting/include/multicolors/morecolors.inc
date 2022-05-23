@@ -106,11 +106,11 @@ stock void MC_PrintToChatEx(int client, int author, const char[] message, any ..
 		ThrowError("Client %i is not in game", client);
 	}
 
-	if (author <= 0 || author > MaxClients) {
+	if (author < 0 || author > MaxClients) {
 		ThrowError("Invalid client index %i", author);
 	}
 
-	if (!IsClientInGame(author)) {
+	if ((author != 0) && !IsClientInGame(author)) {
 		ThrowError("Client %i is not in game", author);
 	}
 
@@ -134,11 +134,11 @@ stock void MC_PrintToChatEx(int client, int author, const char[] message, any ..
 stock void MC_PrintToChatAllEx(int author, const char[] message, any ...) {
 	MC_CheckTrie();
 
-	if (author <= 0 || author > MaxClients) {
+	if (author < 0 || author > MaxClients) {
 		ThrowError("Invalid client index %i", author);
 	}
 
-	if (!IsClientInGame(author)) {
+	if ((author != 0) && !IsClientInGame(author)) {
 		ThrowError("Client %i is not in game", author);
 	}
 
@@ -411,8 +411,7 @@ stock void MC_ReplyToCommand(int client, const char[] message, any ...) {
 		MC_RemoveTags(buffer, sizeof(buffer));
 		PrintToServer("%s", buffer);
 	}
-
-	if (GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
+	else if (GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
 		MC_RemoveTags(buffer, sizeof(buffer));
 		PrintToConsole(client, "%s", buffer);
 	}
@@ -437,8 +436,7 @@ stock void MC_ReplyToCommandEx(int client, int author, const char[] message, any
 		MC_RemoveTags(buffer, sizeof(buffer));
 		PrintToServer("%s", buffer);
 	}
-
-	if (GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
+	else if (GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
 		MC_RemoveTags(buffer, sizeof(buffer));
 		PrintToConsole(client, "%s", buffer);
 	}
@@ -493,7 +491,7 @@ stock int MC_ShowActivity(int client, const char[] format, any ...) {
 			VFormat(szBuffer, sizeof(szBuffer), format, 3);
 
 			MC_RemoveTags(szBuffer, sizeof(szBuffer));
-			PrintToConsole(client, "%s%s\n", tag, szBuffer);
+			PrintToConsole(client, "%s%s", tag, szBuffer);
 			display_in_chat = true;
 		}
 	}
@@ -502,7 +500,7 @@ stock int MC_ShowActivity(int client, const char[] format, any ...) {
 		VFormat(szBuffer, sizeof(szBuffer), format, 3);
 
 		MC_RemoveTags(szBuffer, sizeof(szBuffer));
-		PrintToServer("%s%s\n", tag, szBuffer);
+		PrintToServer("%s%s", tag, szBuffer);
 	}
 
 	if (!value) {
@@ -571,6 +569,10 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 		sm_show_activity = FindConVar("sm_show_activity");
 	}
 
+	char szTag[MC_MAX_MESSAGE_LENGTH];
+	strcopy(szTag, sizeof(szTag), tag);
+	MC_RemoveTags(szTag, sizeof(szTag));
+
 	char szBuffer[MC_MAX_MESSAGE_LENGTH];
 	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
 	int value = sm_show_activity.IntValue;
@@ -596,7 +598,7 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 			VFormat(szBuffer, sizeof(szBuffer), format, 4);
 
 			MC_RemoveTags(szBuffer, sizeof(szBuffer));
-			PrintToConsole(client, "%s%s\n", tag, szBuffer);
+			PrintToConsole(client, "%s%s", szTag, szBuffer);
 			display_in_chat = true;
 		}
 	}
@@ -605,7 +607,7 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 		VFormat(szBuffer, sizeof(szBuffer), format, 4);
 
 		MC_RemoveTags(szBuffer, sizeof(szBuffer));
-		PrintToServer("%s%s\n", tag, szBuffer);
+		PrintToServer("%s%s", szTag, szBuffer);
 	}
 
 	if (!value) {
@@ -676,6 +678,10 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 		sm_show_activity = FindConVar("sm_show_activity");
 	}
 
+	char szTag[MC_MAX_MESSAGE_LENGTH];
+	strcopy(szTag, sizeof(szTag), tag);
+	MC_RemoveTags(szTag, sizeof(szTag));
+
 	char szBuffer[MC_MAX_MESSAGE_LENGTH];
 	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
 	int value = sm_show_activity.IntValue;
@@ -703,14 +709,14 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 		 * simply gets added to the console, so we don't want it to print 
 		 * twice.
 		 */
-		MC_PrintToChatEx(client, client, "%s%s", tag, szBuffer);
+		MC_PrintToChatEx(client, client, "%s%s", szTag, szBuffer);
 	}
 	else {
 		SetGlobalTransTarget(LANG_SERVER);
 		VFormat(szBuffer, sizeof(szBuffer), format, 4);
 
 		MC_RemoveTags(szBuffer, sizeof(szBuffer));
-		PrintToServer("%s%s\n", tag, szBuffer);
+		PrintToServer("%s%s", szTag, szBuffer);
 	}
 
 	if (!value) {
