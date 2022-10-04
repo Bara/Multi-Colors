@@ -1,2 +1,6 @@
 *.smx
 .vscode/
+
+# Python virtual env
+.venv
+venv
