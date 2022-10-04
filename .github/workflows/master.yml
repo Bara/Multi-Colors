@@ -21,8 +21,8 @@ jobs:
       - name: Set environment variables
         run: |
           SOURCEMOD_PATH=$GITHUB_WORKSPACE/addons/sourcemod
-          echo ::set-env name=SOURCEMOD_PATH::$SOURCEMOD_PATH
-          echo ::set-env name=SCRIPTS_PATH::$SOURCEMOD_PATH/scripting
+          echo "SOURCEMOD_PATH=$SOURCEMOD_PATH" >> $GITHUB_ENV
+          echo "SCRIPTING_PATH=$SOURCEMOD_PATH/scripting" >> $GITHUB_ENV
 
       - name: Setup SourcePawn Compiler ${{ matrix.SM_VERSION }}
         uses: rumblefrog/setup-sp@master
@@ -32,5 +32,5 @@ jobs:
       - name: Compile plugin
         run: |
           echo -e "\nCompiling multicolors_example.sp..."
-          spcomp -E -w234 -O2 -v2 -i $SCRIPTS_PATH/include multicolors_example.sp
-        working-directory: ${{ env.SCRIPTS_PATH }}/
+          spcomp -E -w234 -O2 -v2 -i$includePath -i$SCRIPTING_PATH/include multicolors_example.sp
+        working-directory: ${{ env.SCRIPTING_PATH }}/
