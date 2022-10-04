@@ -5,8 +5,8 @@
 
 #define MuCo_VERSION "2.1.2"
 
-#include <multicolors/morecolors>
-#include <multicolors/colors>
+#include "multicolors/morecolors"
+#include "multicolors/colors"
 
 /*
 *
