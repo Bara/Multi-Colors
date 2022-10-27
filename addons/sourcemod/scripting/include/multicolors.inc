@@ -31,19 +31,18 @@
 #define PREFIX_MAX_LENGTH 64
 #define PREFIX_SEPARATOR "{default} "
 
-bool MC_SkipList[MAXPLAYERS+1];
-StringMap MC_Trie;
-int MC_TeamColors[][] = {
+static EngineVersion g_evEngineversion = Engine_Unknown;
+static bool g_bSkipList[MAXPLAYERS+1];
+static StringMap g_smTrie;
+static ConVar g_cShowActivity;
+static char g_sPrefix[PREFIX_MAX_LENGTH];
+static int g_iTeamColors[][] = {
 	{
 		0xCCCCCC,
 		0x4D7942,
 		0xFF4040
 	}
 }; // Multi-dimensional array for games that don't support SayText2. First index is the game index (as defined by the GAME_ defines), second index is team. 0 = spectator, 1 = team1, 2 = team2
-
-static ConVar sm_show_activity;
-
-static char g_sCPrefix[PREFIX_MAX_LENGTH];
 
 /**
  * Prints a message to a specific client in the chat area.
@@ -89,8 +88,8 @@ stock void MC_PrintToChatAll(const char[] message, any ...) {
 	char buffer[MAX_BUFFER_LENGTH], buffer2[MAX_BUFFER_LENGTH];
 
 	for (int i = 1; i <= MaxClients; ++i) {
-		if (!IsClientInGame(i) || MC_SkipList[i]) {
-			MC_SkipList[i] = false;
+		if (!IsClientInGame(i) || g_bSkipList[i]) {
+			g_bSkipList[i] = false;
 			continue;
 		}
 
@@ -164,8 +163,8 @@ stock void MC_PrintToChatAllEx(int author, const char[] message, any ...) {
 	char buffer2[MAX_BUFFER_LENGTH];
 
 	for (int i = 1; i <= MaxClients; ++i) {
-		if (!IsClientInGame(i) || MC_SkipList[i]) {
-			MC_SkipList[i] = false;
+		if (!IsClientInGame(i) || g_bSkipList[i]) {
+			g_bSkipList[i] = false;
 			continue;
 		}
 
@@ -187,8 +186,7 @@ stock void MC_PrintToChatAllEx(int author, const char[] message, any ...) {
  */
 stock void MC_AddWhiteSpace(char[] buffer, int size)
 {
-	EngineVersion iEngineVersion = GetEngineVersion();
-	if (!IsSource2009() && !(iEngineVersion == Engine_Left4Dead) && !(iEngineVersion == Engine_Left4Dead2)) {
+	if (!IsSource2009() && !(g_evEngineversion == Engine_Left4Dead) && !(g_evEngineversion == Engine_Left4Dead2)) {
 		Format(buffer, size, " %s", buffer);
 	}
 }
@@ -211,14 +209,14 @@ stock void MC_SendMessage(int client, const char[] message, int author = 0) {
 
 	UserMsg index = GetUserMessageId("SayText2");
 	if (index == INVALID_MESSAGE_ID) {
-		if (GetEngineVersion() == Engine_DODS) {
+		if (IsSource2009() && g_evEngineversion == Engine_DODS) {
 			int team = GetClientTeam(author);
 			if (team == 0) {
 				ReplaceString(buffer, sizeof(buffer), "\x03", "\x04", false); // Unassigned gets green
 			}
 			else {
 				char temp[16];
-				Format(temp, sizeof(temp), "\x07%06X", MC_TeamColors[MC_GAME_DODS][team - 1]);
+				Format(temp, sizeof(temp), "\x07%06X", g_iTeamColors[MC_GAME_DODS][team - 1]);
 				ReplaceString(buffer, sizeof(buffer), "\x03", temp, false);
 			}
 		}
@@ -261,7 +259,7 @@ stock void MC_SkipNextClient(int client) {
 		ThrowError("Invalid client index %i", client);
 	}
 	
-	MC_SkipList[client] = true;
+	g_bSkipList[client] = true;
 }
 
 /**
@@ -270,14 +268,14 @@ stock void MC_SkipNextClient(int client) {
  * @return			No return
  */
 stock void MC_CheckTrie() {
-	if (MC_Trie == null) {
-		MC_Trie = MC_InitColorTrie();
+	if (g_smTrie == null) {
+		g_smTrie = MC_InitColorTrie();
 	}
 }
 
 stock StringMap MC_GetTrie() {
 	MC_CheckTrie();
-	return MC_Trie;
+	return g_smTrie;
 }
 
 /**
@@ -350,7 +348,7 @@ stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags =
 				ReplaceString(output, maxlen, tag, buff, false);
 			}
 		}
-		else if (!MC_Trie.GetString(buff, value, sizeof(value))) {
+		else if (!g_smTrie.GetString(buff, value, sizeof(value))) {
 			continue;
 		}
 
@@ -410,7 +408,7 @@ stock bool MC_AddColor(const char[] name, int color) {
 
 	char value[32];
 
-	if (MC_Trie.GetString(name, value, sizeof(value))) {
+	if (g_smTrie.GetString(name, value, sizeof(value))) {
 		return false;
 	}
 
@@ -418,7 +416,7 @@ stock bool MC_AddColor(const char[] name, int color) {
 	strcopy(newName, sizeof(newName), name);
 
 	MC_StrToLower(newName);
-	MC_Trie.SetValue(newName, color);
+	g_smTrie.SetValue(newName, color);
 	return true;
 }
 
@@ -497,15 +495,15 @@ stock void MC_ReplyToCommandEx(int client, int author, const char[] message, any
  * @error
  */
 stock int MC_ShowActivity(int client, const char[] format, any ...) {
-	if (sm_show_activity == null) {
-		sm_show_activity = FindConVar("sm_show_activity");
+	if (g_cShowActivity == null) {
+		g_cShowActivity = FindConVar("sm_show_activity");
 	}
 
 	char tag[] = "[SM] ";
 
 	char szBuffer[MC_MAX_MESSAGE_LENGTH];
 	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
-	int value = sm_show_activity.IntValue;
+	int value = g_cShowActivity.IntValue;
 	ReplySource replyto = GetCmdReplySource();
 
 	char name[MAX_NAME_LENGTH] = "Console";
@@ -601,8 +599,8 @@ stock int MC_ShowActivity(int client, const char[] format, any ...) {
  * @error
  */
 stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, any ...) {
-	if (sm_show_activity == null) {
-		sm_show_activity = FindConVar("sm_show_activity");
+	if (g_cShowActivity == null) {
+		g_cShowActivity = FindConVar("sm_show_activity");
 	}
 
 	char szTag[MC_MAX_MESSAGE_LENGTH];
@@ -611,7 +609,7 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 
 	char szBuffer[MC_MAX_MESSAGE_LENGTH];
 	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
-	int value = sm_show_activity.IntValue;
+	int value = g_cShowActivity.IntValue;
 	ReplySource replyto = GetCmdReplySource();
 
 	char name[MAX_NAME_LENGTH] = "Console";
@@ -710,8 +708,8 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
  * @error
  */
 stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, any ...) {
-	if (sm_show_activity == null) {
-		sm_show_activity = FindConVar("sm_show_activity");
+	if (g_cShowActivity == null) {
+		g_cShowActivity = FindConVar("sm_show_activity");
 	}
 
 	char szTag[MC_MAX_MESSAGE_LENGTH];
@@ -720,7 +718,7 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 
 	char szBuffer[MC_MAX_MESSAGE_LENGTH];
 	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
-	int value = sm_show_activity.IntValue;
+	int value = g_cShowActivity.IntValue;
 	// ReplySource replyto = GetCmdReplySource();
 
 	char name[MAX_NAME_LENGTH] = "Console";
@@ -816,7 +814,7 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 stock bool CColorExists(const char[] color) {
 	MC_CheckTrie();
 	char temp[32];
-	return MC_Trie.GetString(color, temp, sizeof(temp));
+	return g_smTrie.GetString(color, temp, sizeof(temp));
 }
 
 /**
@@ -1102,10 +1100,10 @@ stock void CSetPrefix(const char[] sPrefix, any ...) {
 	}
 
 	SetGlobalTransTarget(LANG_SERVER);
-	VFormat(g_sCPrefix, sizeof(g_sCPrefix) - strlen(PREFIX_SEPARATOR), sPrefix, 2);
+	VFormat(g_sPrefix, sizeof(g_sPrefix) - strlen(PREFIX_SEPARATOR), sPrefix, 2);
 
 	// Add ending space
-	Format(g_sCPrefix, sizeof(g_sCPrefix), "%s%s", g_sCPrefix, PREFIX_SEPARATOR);
+	Format(g_sPrefix, sizeof(g_sPrefix), "%s%s", g_sPrefix, PREFIX_SEPARATOR);
 }
 
 /**
@@ -1114,7 +1112,7 @@ stock void CSetPrefix(const char[] sPrefix, any ...) {
  * @param sPrefix		Prefix
  */
 stock void CClearPrefix() {
-	g_sCPrefix[0] = '\0';
+	g_sPrefix[0] = '\0';
 }
 
 /**
@@ -1130,7 +1128,7 @@ stock void CPrintToChat(int client, const char[] message, any ...) {
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 3);
 
-	MC_PrintToChat(client, "%s%s", g_sCPrefix, buffer);
+	MC_PrintToChat(client, "%s%s", g_sPrefix, buffer);
 }
 
 /**
@@ -1147,8 +1145,8 @@ stock void CPrintToChatAll(const char[] message, any ...) {
 	char buffer2[MAX_BUFFER_LENGTH];
 
 	for (int i = 1; i <= MaxClients; ++i) {
-		if (!IsClientInGame(i) || MC_SkipList[i]) {
-			MC_SkipList[i] = false;
+		if (!IsClientInGame(i) || g_bSkipList[i]) {
+			g_bSkipList[i] = false;
 			continue;
 		}
 
@@ -1198,7 +1196,7 @@ stock void CPrintToChatEx(int client, int author, const char[] message, any ...)
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 4);
 
-	MC_PrintToChatEx(client, author, "%s%s", g_sCPrefix, buffer);
+	MC_PrintToChatEx(client, author, "%s%s", g_sPrefix, buffer);
 }
 
 /**
@@ -1212,7 +1210,7 @@ stock void CPrintToChatAllEx(int author, const char[] message, any ...) {
 	SetGlobalTransTarget(LANG_SERVER);
 	VFormat(buffer, sizeof(buffer), message, 3);
 
-	MC_PrintToChatAllEx(author, "%s%s", g_sCPrefix, buffer);
+	MC_PrintToChatAllEx(author, "%s%s", g_sPrefix, buffer);
 }
 
 /**
@@ -1250,7 +1248,7 @@ stock void CReplyToCommand(int client, const char[] message, any ...) {
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 3);
 
-	MC_ReplyToCommand(client, "%s%s", g_sCPrefix, buffer);
+	MC_ReplyToCommand(client, "%s%s", g_sPrefix, buffer);
 }
 
 /**
@@ -1265,7 +1263,7 @@ stock void CReplyToCommandEx(int client, int author, const char[] message, any .
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 4);
 
-	MC_ReplyToCommandEx(client, author, "%s%s", g_sCPrefix, buffer);
+	MC_ReplyToCommandEx(client, author, "%s%s", g_sPrefix, buffer);
 }
 
 /**
@@ -1278,7 +1276,7 @@ stock void CPrintToServer(const char[] message, any ...) {
 	char prefixBuffer[PREFIX_MAX_LENGTH];
 	SetGlobalTransTarget(LANG_SERVER);
 	VFormat(buffer, sizeof(buffer), message, 2);
-	strcopy(prefixBuffer, sizeof(prefixBuffer), g_sCPrefix);
+	strcopy(prefixBuffer, sizeof(prefixBuffer), g_sPrefix);
 
 	CRemoveTags(buffer, sizeof(buffer));
 	CRemoveTags(prefixBuffer, sizeof(prefixBuffer));
@@ -1375,9 +1373,15 @@ stock void CRemoveTags(char[] message, int maxlen) {
 }
 
 stock bool IsSource2009() {
-	return (GetEngineVersion() == Engine_CSS
-	|| GetEngineVersion() == Engine_HL2DM
-	|| GetEngineVersion() == Engine_DODS
-	|| GetEngineVersion() == Engine_TF2
-	|| GetEngineVersion() == Engine_SDK2013);
+	if (g_evEngineversion == Engine_Unknown)
+	{
+		g_evEngineversion = GetEngineVersion();
+	}
+
+	return (g_evEngineversion == Engine_CSS
+	|| g_evEngineversion == Engine_HL2DM
+	|| g_evEngineversion == Engine_DODS
+	|| g_evEngineversion == Engine_TF2
+	|| g_evEngineversion == Engine_Left4Dead2
+	|| g_evEngineversion == Engine_SDK2013);
 }
