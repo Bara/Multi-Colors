@@ -27,7 +27,7 @@ public Action Command_AddPrefix(int client, int args)
 	}
 	else
 	{
-		CSetPrefix("{orange}[MultiColor]{default}");
+		CSetPrefix("{gold}[MultiColor]{default}");
 		CReplyToCommand(client, "You can use {yellow}sm_multicolors {default}now !");
 	}
 	return Plugin_Continue;
