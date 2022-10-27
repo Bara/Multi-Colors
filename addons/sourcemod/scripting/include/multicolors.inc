@@ -1382,6 +1382,6 @@ stock bool IsSource2009() {
 	|| g_evEngineversion == Engine_HL2DM
 	|| g_evEngineversion == Engine_DODS
 	|| g_evEngineversion == Engine_TF2
-	|| g_evEngineversion == Engine_Left4Dead2
+	|| g_evEngineversion == Engine_Insurgency
 	|| g_evEngineversion == Engine_SDK2013);
 }
