@@ -77,7 +77,7 @@ public Action Command_MultiColors(int client, int args)
 	Format(sName, sizeof(sName), "{green}%N", client);
 	CPrintToChat(client, "CPrintToChat - Name (Before CFormatColor): %s", sName);
 	PrintToChat(client, "PrintToChat - Name (Before CFormatColor): %s", sName);
-	CFormatColor(sName, MAX_NAME_LENGTH, client);
+	CReplaceColorCodes(sName, client, false, MAX_NAME_LENGTH);
 	CPrintToChat(client, "CPrintToChat - Name (After CFormatColor): %s", sName);
 	PrintToChat(client, "PrintToChat - Name (After CFormatColor): %s", sName);
 	Format(sName, sizeof(sName), "{green}%N", client);

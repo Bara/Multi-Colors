@@ -23,10 +23,10 @@
 
 #include <regex>
 
-#define MC_MAX_MESSAGE_LENGTH   256
-#define MAX_BUFFER_LENGTH       (MC_MAX_MESSAGE_LENGTH * 4)
+#define MAX_MESSAGE_LENGTH   256
+#define MAX_BUFFER_LENGTH       (MAX_MESSAGE_LENGTH * 4)
 
-#define MC_GAME_DODS           0
+#define GAME_DODS           0
 
 #define PREFIX_MAX_LENGTH 64
 #define PREFIX_SEPARATOR "{default} "
@@ -53,8 +53,8 @@ static int g_iTeamColors[][] = {
  * 
  * On error/Errors:		If the client is not connected an error will be thrown.
  */
-stock void MC_PrintToChat(int client, const char[] message, any ...) {
-	MC_CheckTrie();
+stock void CPrintToChat(int client, const char[] message, any ...) {
+	CCheckTrie();
 
 	if (client <= 0 || client > MaxClients) {
 		ThrowError("Invalid client index %i", client);
@@ -71,8 +71,8 @@ stock void MC_PrintToChat(int client, const char[] message, any ...) {
 	Format(buffer, sizeof(buffer), "\x01%s", message);
 	VFormat(buffer2, sizeof(buffer2), buffer, 3);
 
-	MC_ReplaceColorCodes(buffer2);
-	MC_SendMessage(client, buffer2);
+	CReplaceColorCodes(buffer2);
+	CSendMessage(client, buffer2);
 }
 
 /**
@@ -82,8 +82,8 @@ stock void MC_PrintToChat(int client, const char[] message, any ...) {
  * @param client		Client index.
  * @param message		Message (formatting rules).
  */
-stock void MC_PrintToChatAll(const char[] message, any ...) {
-	MC_CheckTrie();
+stock void CPrintToChatAll(const char[] message, any ...) {
+	CCheckTrie();
 
 	char buffer[MAX_BUFFER_LENGTH], buffer2[MAX_BUFFER_LENGTH];
 
@@ -97,8 +97,8 @@ stock void MC_PrintToChatAll(const char[] message, any ...) {
 		Format(buffer, sizeof(buffer), "\x01%s", message);
 		VFormat(buffer2, sizeof(buffer2), buffer, 2);
 
-		MC_ReplaceColorCodes(buffer2);
-		MC_SendMessage(i, buffer2);
+		CReplaceColorCodes(buffer2);
+		CSendMessage(i, buffer2);
 	}
 }
 
@@ -112,8 +112,8 @@ stock void MC_PrintToChatAll(const char[] message, any ...) {
  * 
  * On error/Errors:		If the client or author are not connected an error will be thrown
  */
-stock void MC_PrintToChatEx(int client, int author, const char[] message, any ...) {
-	MC_CheckTrie();
+stock void CPrintToChatEx(int client, int author, const char[] message, any ...) {
+	CCheckTrie();
 
 	if (client <= 0 || client > MaxClients) {
 		ThrowError("Invalid client index %i", client);
@@ -135,8 +135,8 @@ stock void MC_PrintToChatEx(int client, int author, const char[] message, any ..
 	SetGlobalTransTarget(client);
 	Format(buffer, sizeof(buffer), "\x01%s", message);
 	VFormat(buffer2, sizeof(buffer2), buffer, 4);
-	MC_ReplaceColorCodes(buffer2, author);
-	MC_SendMessage(client, buffer2, author);
+	CReplaceColorCodes(buffer2, author);
+	CSendMessage(client, buffer2, author);
 }
 
 /**
@@ -148,8 +148,8 @@ stock void MC_PrintToChatEx(int client, int author, const char[] message, any ..
  * 
  * On error/Errors:   If the author is not connected an error will be thrown.
  */
-stock void MC_PrintToChatAllEx(int author, const char[] message, any ...) {
-	MC_CheckTrie();
+stock void CPrintToChatAllEx(int author, const char[] message, any ...) {
+	CCheckTrie();
 
 	if (author < 0 || author > MaxClients) {
 		ThrowError("Invalid client index %i", author);
@@ -172,8 +172,8 @@ stock void MC_PrintToChatAllEx(int author, const char[] message, any ...) {
 		Format(buffer, sizeof(buffer), "\x01%s", message);
 		VFormat(buffer2, sizeof(buffer2), buffer, 3);
 
-		MC_ReplaceColorCodes(buffer2, author);
-		MC_SendMessage(i, buffer2, author);
+		CReplaceColorCodes(buffer2, author);
+		CSendMessage(i, buffer2, author);
 	}
 }
 
@@ -184,7 +184,7 @@ stock void MC_PrintToChatAllEx(int author, const char[] message, any ...) {
  * @param buffer	Buffer that contains the chat message
  * @param size		Size of the buffer
  */
-stock void MC_AddWhiteSpace(char[] buffer, int size)
+stock void CAddWhiteSpace(char[] buffer, int size)
 {
 	if (!IsSource2009() && !(g_evEngineVersion == Engine_Left4Dead) && !(g_evEngineVersion == Engine_Left4Dead2)) {
 		Format(buffer, size, " %s", buffer);
@@ -197,15 +197,15 @@ stock void MC_AddWhiteSpace(char[] buffer, int size)
  * @param client	Client to send usermessage to
  * @param message	Message to send
  */
-stock void MC_SendMessage(int client, const char[] message, int author = 0) {
+stock void CSendMessage(int client, const char[] message, int author = 0) {
 	if (author == 0) {
 		author = client;
 	}
 
-	char buffer[MC_MAX_MESSAGE_LENGTH];
+	char buffer[MAX_MESSAGE_LENGTH];
 	strcopy(buffer, sizeof(buffer), message);
 
-	MC_AddWhiteSpace(buffer, sizeof(buffer));
+	CAddWhiteSpace(buffer, sizeof(buffer));
 
 	UserMsg index = GetUserMessageId("SayText2");
 	if (index == INVALID_MESSAGE_ID) {
@@ -216,7 +216,7 @@ stock void MC_SendMessage(int client, const char[] message, int author = 0) {
 			}
 			else {
 				char temp[16];
-				Format(temp, sizeof(temp), "\x07%06X", g_iTeamColors[MC_GAME_DODS][team - 1]);
+				Format(temp, sizeof(temp), "\x07%06X", g_iTeamColors[GAME_DODS][team - 1]);
 				ReplaceString(buffer, sizeof(buffer), "\x03", temp, false);
 			}
 		}
@@ -248,13 +248,13 @@ stock void MC_SendMessage(int client, const char[] message, int author = 0) {
 
 /**
  * This function should only be used right in front of
- * MC_PrintToChatAll or MC_PrintToChatAllEx. It causes those functions
+ * CPrintToChatAll or CPrintToChatAllEx. It causes those functions
  * to skip the specified client when printing the message.
  * After printing the message, the client will no longer be skipped.
  * 
  * @param client   Client index
  */
-stock void MC_SkipNextClient(int client) {
+stock void CSkipNextClient(int client) {
 	if (client <= 0 || client > MaxClients) {
 		ThrowError("Invalid client index %i", client);
 	}
@@ -267,29 +267,29 @@ stock void MC_SkipNextClient(int client) {
  * 
  * @return			No return
  */
-stock void MC_CheckTrie() {
+stock void CCheckTrie() {
 	if (g_smTrie == null) {
-		g_smTrie = MC_InitColorTrie();
+		g_smTrie = CInitColorTrie();
 	}
 }
 
-stock StringMap MC_GetTrie() {
-	MC_CheckTrie();
+stock StringMap CGetTrie() {
+	CCheckTrie();
 	return g_smTrie;
 }
 
 /**
- * Replaces color tags in a string with color codes (used internally by MC_PrintToChat, MC_PrintToChatAll, MC_PrintToChatEx, and MC_PrintToChatAllEx
+ * Replaces color tags in a string with color codes (used internally by CPrintToChat, CPrintToChatAll, CPrintToChatEx, and CPrintToChatAllEx
  *
  * @param buffer		String.
  * @param author		Optional client index to use for {teamcolor} tags, or 0 for none
- * @param removeTags	Optional boolean value to determine whether we're replacing tags with colors, or just removing tags, used by MC_RemoveTags
- * @param maxlen		Optional value for max buffer length, used by MC_RemoveTags
+ * @param removeTags	Optional boolean value to determine whether we're replacing tags with colors, or just removing tags, used by CRemoveTags
+ * @param maxlen		Optional value for max buffer length, used by CRemoveTags
  * 
  * On error/Errors:		If the client index passed for author is invalid or not in game.
  */
-stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags = false, int maxlen = MAX_BUFFER_LENGTH) {
-	MC_CheckTrie();
+stock void CReplaceColorCodes(char[] buffer, int author = 0, bool removeTags = false, int maxlen = MAX_BUFFER_LENGTH) {
+	CCheckTrie();
 	if (removeTags) {
 		ReplaceString(buffer, maxlen, "{default}", "", false);
 		ReplaceString(buffer, maxlen, "{teamcolor}", "", false);
@@ -324,7 +324,7 @@ stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags =
 		}
 
 		regex.GetSubString(0, tag, sizeof(tag));
-		MC_StrToLower(tag);
+		CStrToLower(tag);
 		cursor = StrContains(buffer[cursor], tag, false) + cursor + 1;
 		strcopy(buff, sizeof(buff), tag);
 		ReplaceString(buff, sizeof(buff), "{", "");
@@ -389,7 +389,7 @@ stock void CSubString(const char[] input, char[] output, int maxlen, int start, 
  * 
  * @param buffer		String to convert
  */
-stock void MC_StrToLower(char[] buffer) {
+stock void CStrToLower(char[] buffer) {
 	int len = strlen(buffer);
 	for (int i = 0; i < len; i++) {
 		buffer[i] = CharToLower(buffer[i]);
@@ -403,8 +403,8 @@ stock void MC_StrToLower(char[] buffer) {
  * @param color			Hexadecimal representation of the color (0xRRGGBB)
  * @return				True if color was added successfully, false if a color already exists with that name
  */
-stock bool MC_AddColor(const char[] name, int color) {
-	MC_CheckTrie();
+stock bool CAddColor(const char[] name, int color) {
+	CCheckTrie();
 
 	char value[32];
 
@@ -415,7 +415,7 @@ stock bool MC_AddColor(const char[] name, int color) {
 	char newName[64];
 	strcopy(newName, sizeof(newName), name);
 
-	MC_StrToLower(newName);
+	CStrToLower(newName);
 	g_smTrie.SetValue(newName, color);
 	return true;
 }
@@ -426,8 +426,8 @@ stock bool MC_AddColor(const char[] name, int color) {
  * @param message		Message to remove tags from
  * @param maxlen		Maximum buffer length
  */
-stock void MC_RemoveTags(char[] message, int maxlen) {
-	MC_ReplaceColorCodes(message, 0, true, maxlen);
+stock void CRemoveTags(char[] message, int maxlen) {
+	CReplaceColorCodes(message, 0, true, maxlen);
 }
 
 /**
@@ -436,21 +436,21 @@ stock void MC_RemoveTags(char[] message, int maxlen) {
  * @param client		Client to reply to
  * @param message		Message (formatting rules)
  */
-stock void MC_ReplyToCommand(int client, const char[] message, any ...) {
+stock void CReplyToCommand(int client, const char[] message, any ...) {
 	char buffer[MAX_BUFFER_LENGTH];
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 3);
 
 	if (client == 0) {
-		MC_RemoveTags(buffer, sizeof(buffer));
+		CRemoveTags(buffer, sizeof(buffer));
 		PrintToServer("%s", buffer);
 	}
 	else if (GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
-		MC_RemoveTags(buffer, sizeof(buffer));
+		CRemoveTags(buffer, sizeof(buffer));
 		PrintToConsole(client, "%s", buffer);
 	}
 	else {
-		MC_PrintToChat(client, "%s", buffer);
+		CPrintToChat(client, "%s", buffer);
 	}
 }
 
@@ -461,21 +461,21 @@ stock void MC_ReplyToCommand(int client, const char[] message, any ...) {
  * @param author		Client to use for {teamcolor}
  * @param message		Message (formatting rules)
  */
-stock void MC_ReplyToCommandEx(int client, int author, const char[] message, any ...) {
+stock void CReplyToCommandEx(int client, int author, const char[] message, any ...) {
 	char buffer[MAX_BUFFER_LENGTH];
 	SetGlobalTransTarget(client);
 	VFormat(buffer, sizeof(buffer), message, 4);
 
 	if (client == 0) {
-		MC_RemoveTags(buffer, sizeof(buffer));
+		CRemoveTags(buffer, sizeof(buffer));
 		PrintToServer("%s", buffer);
 	}
 	else if (GetCmdReplySource() == SM_REPLY_TO_CONSOLE) {
-		MC_RemoveTags(buffer, sizeof(buffer));
+		CRemoveTags(buffer, sizeof(buffer));
 		PrintToConsole(client, "%s", buffer);
 	}
 	else {
-		MC_PrintToChatEx(client, author, "%s", buffer);
+		CPrintToChatEx(client, author, "%s", buffer);
 	}
 }
 
@@ -486,7 +486,7 @@ stock void MC_ReplyToCommandEx(int client, int author, const char[] message, any
  * This version does not display a message to the originating client 
  * if used from chat triggers or menus.  If manual replies are used 
  * for these cases, then this function will suffice.  Otherwise, 
- * MC_ShowActivity2() is slightly more useful.
+ * CShowActivity2() is slightly more useful.
  * Supports color tags.
  *
  * @param client		Client index doing the action, or 0 for server.
@@ -494,15 +494,15 @@ stock void MC_ReplyToCommandEx(int client, int author, const char[] message, any
  * @param ...			Variable number of format parameters.
  * @error
  */
-stock int MC_ShowActivity(int client, const char[] format, any ...) {
+stock int CShowActivity(int client, const char[] format, any ...) {
 	if (g_cShowActivity == null) {
 		g_cShowActivity = FindConVar("sm_show_activity");
 	}
 
 	char tag[] = "[SM] ";
 
-	char szBuffer[MC_MAX_MESSAGE_LENGTH];
-	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
+	char szBuffer[MAX_MESSAGE_LENGTH];
+	//char szCMessage[MAX_MESSAGE_LENGTH];
 	int value = g_cShowActivity.IntValue;
 	ReplySource replyto = GetCmdReplySource();
 
@@ -524,7 +524,7 @@ stock int MC_ShowActivity(int client, const char[] format, any ...) {
 			SetGlobalTransTarget(client);
 			VFormat(szBuffer, sizeof(szBuffer), format, 3);
 
-			MC_RemoveTags(szBuffer, sizeof(szBuffer));
+			CRemoveTags(szBuffer, sizeof(szBuffer));
 			PrintToConsole(client, "%s%s", tag, szBuffer);
 			display_in_chat = true;
 		}
@@ -533,7 +533,7 @@ stock int MC_ShowActivity(int client, const char[] format, any ...) {
 		SetGlobalTransTarget(LANG_SERVER);
 		VFormat(szBuffer, sizeof(szBuffer), format, 3);
 
-		MC_RemoveTags(szBuffer, sizeof(szBuffer));
+		CRemoveTags(szBuffer, sizeof(szBuffer));
 		PrintToServer("%s%s", tag, szBuffer);
 	}
 
@@ -562,7 +562,7 @@ stock int MC_ShowActivity(int client, const char[] format, any ...) {
 
 				VFormat(szBuffer, sizeof(szBuffer), format, 3);
 
-				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
+				CPrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
 		else {
@@ -580,7 +580,7 @@ stock int MC_ShowActivity(int client, const char[] format, any ...) {
 
 				VFormat(szBuffer, sizeof(szBuffer), format, 3);
 
-				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
+				CPrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
 	}
@@ -589,7 +589,7 @@ stock int MC_ShowActivity(int client, const char[] format, any ...) {
 }
 
 /**
- * Same as MC_ShowActivity(), except the tag parameter is used instead of "[SM] " (note that you must supply any spacing).
+ * Same as CShowActivity(), except the tag parameter is used instead of "[SM] " (note that you must supply any spacing).
  * Supports color tags.
  *
  * @param client		Client index doing the action, or 0 for server.
@@ -598,17 +598,17 @@ stock int MC_ShowActivity(int client, const char[] format, any ...) {
  * @param ...			Variable number of format parameters.
  * @error
  */
-stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, any ...) {
+stock int CShowActivityEx(int client, const char[] tag, const char[] format, any ...) {
 	if (g_cShowActivity == null) {
 		g_cShowActivity = FindConVar("sm_show_activity");
 	}
 
-	char szTag[MC_MAX_MESSAGE_LENGTH];
+	char szTag[MAX_MESSAGE_LENGTH];
 	strcopy(szTag, sizeof(szTag), tag);
-	MC_RemoveTags(szTag, sizeof(szTag));
+	CRemoveTags(szTag, sizeof(szTag));
 
-	char szBuffer[MC_MAX_MESSAGE_LENGTH];
-	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
+	char szBuffer[MAX_MESSAGE_LENGTH];
+	//char szCMessage[MAX_MESSAGE_LENGTH];
 	int value = g_cShowActivity.IntValue;
 	ReplySource replyto = GetCmdReplySource();
 
@@ -631,7 +631,7 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 			SetGlobalTransTarget(client);
 			VFormat(szBuffer, sizeof(szBuffer), format, 4);
 
-			MC_RemoveTags(szBuffer, sizeof(szBuffer));
+			CRemoveTags(szBuffer, sizeof(szBuffer));
 			PrintToConsole(client, "%s%s", szTag, szBuffer);
 			display_in_chat = true;
 		}
@@ -640,7 +640,7 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 		SetGlobalTransTarget(LANG_SERVER);
 		VFormat(szBuffer, sizeof(szBuffer), format, 4);
 
-		MC_RemoveTags(szBuffer, sizeof(szBuffer));
+		CRemoveTags(szBuffer, sizeof(szBuffer));
 		PrintToServer("%s%s", szTag, szBuffer);
 	}
 
@@ -669,7 +669,7 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 
 				VFormat(szBuffer, sizeof(szBuffer), format, 4);
 
-				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
+				CPrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
 		else {
@@ -687,7 +687,7 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 
 				VFormat(szBuffer, sizeof(szBuffer), format, 4);
 
-				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
+				CPrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
 	}
@@ -707,17 +707,17 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
  * @param ...			Variable number of format parameters.
  * @error
  */
-stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, any ...) {
+stock int CShowActivity2(int client, const char[] tag, const char[] format, any ...) {
 	if (g_cShowActivity == null) {
 		g_cShowActivity = FindConVar("sm_show_activity");
 	}
 
-	char szTag[MC_MAX_MESSAGE_LENGTH];
+	char szTag[MAX_MESSAGE_LENGTH];
 	strcopy(szTag, sizeof(szTag), tag);
-	MC_RemoveTags(szTag, sizeof(szTag));
+	CRemoveTags(szTag, sizeof(szTag));
 
-	char szBuffer[MC_MAX_MESSAGE_LENGTH];
-	//char szCMessage[MC_MAX_MESSAGE_LENGTH];
+	char szBuffer[MAX_MESSAGE_LENGTH];
+	//char szCMessage[MAX_MESSAGE_LENGTH];
 	int value = g_cShowActivity.IntValue;
 	// ReplySource replyto = GetCmdReplySource();
 
@@ -743,13 +743,13 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 		 * simply gets added to the console, so we don't want it to print 
 		 * twice.
 		 */
-		MC_PrintToChatEx(client, client, "%s%s", szTag, szBuffer);
+		CPrintToChatEx(client, client, "%s%s", szTag, szBuffer);
 	}
 	else {
 		SetGlobalTransTarget(LANG_SERVER);
 		VFormat(szBuffer, sizeof(szBuffer), format, 4);
 
-		MC_RemoveTags(szBuffer, sizeof(szBuffer));
+		CRemoveTags(szBuffer, sizeof(szBuffer));
 		PrintToServer("%s%s", szTag, szBuffer);
 	}
 
@@ -778,7 +778,7 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 
 				VFormat(szBuffer, sizeof(szBuffer), format, 4);
 
-				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
+				CPrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
 		else {
@@ -797,7 +797,7 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 
 				VFormat(szBuffer, sizeof(szBuffer), format, 4);
 
-				MC_PrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
+				CPrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
 			}
 		}
 	}
@@ -812,7 +812,7 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
  * @return				True if the color exists, false otherwise
  */
 stock bool CColorExists(const char[] color) {
-	MC_CheckTrie();
+	CCheckTrie();
 	char temp[32];
 	return g_smTrie.GetString(color, temp, sizeof(temp));
 }
@@ -837,7 +837,7 @@ stock bool CGetTeamColor(int client, char[] value, int size) {
 		return false;
 	}
 
-	StringMap smTrie = MC_GetTrie();
+	StringMap smTrie = CGetTrie();
 	if (smTrie == null)
 	{
 		ThrowError("No color in StringMap tree", client);
@@ -862,7 +862,7 @@ stock bool CGetTeamColor(int client, char[] value, int size) {
 	return true;
 }
 
-stock StringMap MC_InitColorTrie() {
+stock StringMap CInitColorTrie() {
 	StringMap hTrie = new StringMap();
 
 	if (IsSource2009()) {
@@ -1116,57 +1116,13 @@ stock void CClearPrefix() {
 }
 
 /**
- * Writes a message to a client with the correct stock for the game.
- *
- * @param client        Client index.
- * @param message       Message (formatting rules).
- *
- * @error               If the client is not connected an error will be thrown.
- */
-stock void CPrintToChat(int client, const char[] message, any ...) {
-	char buffer[MC_MAX_MESSAGE_LENGTH];
-	SetGlobalTransTarget(client);
-	VFormat(buffer, sizeof(buffer), message, 3);
-
-	MC_PrintToChat(client, "%s%s", g_sPrefix, buffer);
-}
-
-/**
- * Prints a message to all clients in the chat area.
- * Supports color tags.
- *
- * @param client	  Client index.
- * @param message     Message (formatting rules)
- */
-stock void CPrintToChatAll(const char[] message, any ...) {
-	char buffer[MAX_BUFFER_LENGTH];
-	MC_CheckTrie();
-
-	char buffer2[MAX_BUFFER_LENGTH];
-
-	for (int i = 1; i <= MaxClients; ++i) {
-		if (!IsClientInGame(i) || g_bSkipList[i]) {
-			g_bSkipList[i] = false;
-			continue;
-		}
-
-		SetGlobalTransTarget(i);
-		Format(buffer, sizeof(buffer), "\x01%s", message);
-		VFormat(buffer2, sizeof(buffer2), buffer, 2);
-
-		MC_ReplaceColorCodes(buffer2);
-		MC_SendMessage(i, buffer2);
-	}
-}
-
-/**
  * Writes a message to all of a client's observers.
  *
  * @param target 	Client index.
  * @param message	Message (formatting rules).
  */
 stock void CPrintToChatObservers(int target, const char[] message, any ...) {
-	char buffer[MC_MAX_MESSAGE_LENGTH];
+	char buffer[MAX_MESSAGE_LENGTH];
 	SetGlobalTransTarget(LANG_SERVER);
 	VFormat(buffer, sizeof(buffer), message, 3);
 
@@ -1183,37 +1139,6 @@ stock void CPrintToChatObservers(int target, const char[] message, any ...) {
 }
 
 /**
- * Writes a message to a client with the correct stock for the game.
- *
- * @param client        Client index.
- * @param author        Author index.
- * @param message       Message (formatting rules).
- *
- * @error               If the client is not connected an error will be thrown.
- */
-stock void CPrintToChatEx(int client, int author, const char[] message, any ...) {
-	char buffer[MC_MAX_MESSAGE_LENGTH];
-	SetGlobalTransTarget(client);
-	VFormat(buffer, sizeof(buffer), message, 4);
-
-	MC_PrintToChatEx(client, author, "%s%s", g_sPrefix, buffer);
-}
-
-/**
- * Writes a message to all clients with the correct stock for the game.
- *
- * @param author        Author index.
- * @param message       Message (formatting rules).
- */
-stock void CPrintToChatAllEx(int author, const char[] message, any ...) {
-	char buffer[MC_MAX_MESSAGE_LENGTH];
-	SetGlobalTransTarget(LANG_SERVER);
-	VFormat(buffer, sizeof(buffer), message, 3);
-
-	MC_PrintToChatAllEx(author, "%s%s", g_sPrefix, buffer);
-}
-
-/**
  * Writes a message to all of a client's observers with the correct
  * game stock.
  *
@@ -1221,7 +1146,7 @@ stock void CPrintToChatAllEx(int author, const char[] message, any ...) {
  * @param message	Message (formatting rules).
  */
 stock void CPrintToChatObserversEx(int target, const char[] message, any ...) {
-	char buffer[MC_MAX_MESSAGE_LENGTH];
+	char buffer[MAX_MESSAGE_LENGTH];
 	SetGlobalTransTarget(LANG_SERVER);
 	VFormat(buffer, sizeof(buffer), message, 3);
 
@@ -1238,41 +1163,12 @@ stock void CPrintToChatObserversEx(int target, const char[] message, any ...) {
 }
 
 /**
- * Replies to a command with colors
- * 
- * @param client		Client to reply to
- * @param message		Message (formatting rules)
- */
-stock void CReplyToCommand(int client, const char[] message, any ...) {
-	char buffer[MC_MAX_MESSAGE_LENGTH];
-	SetGlobalTransTarget(client);
-	VFormat(buffer, sizeof(buffer), message, 3);
-
-	MC_ReplyToCommand(client, "%s%s", g_sPrefix, buffer);
-}
-
-/**
- * Replies to a command with colors
- * 
- * @param client		Client to reply to
- * @param author		Client to use for {teamcolor}
- * @param message		Message (formatting rules)
- */
-stock void CReplyToCommandEx(int client, int author, const char[] message, any ...) {
-	char buffer[MC_MAX_MESSAGE_LENGTH];
-	SetGlobalTransTarget(client);
-	VFormat(buffer, sizeof(buffer), message, 4);
-
-	MC_ReplyToCommandEx(client, author, "%s%s", g_sPrefix, buffer);
-}
-
-/**
  * Remove all tags and print to server
  * 
  * @param message		Message (formatting rules)
  */
 stock void CPrintToServer(const char[] message, any ...) {
-	char buffer[MC_MAX_MESSAGE_LENGTH];
+	char buffer[MAX_MESSAGE_LENGTH];
 	char prefixBuffer[PREFIX_MAX_LENGTH];
 	SetGlobalTransTarget(LANG_SERVER);
 	VFormat(buffer, sizeof(buffer), message, 2);
@@ -1282,94 +1178,6 @@ stock void CPrintToServer(const char[] message, any ...) {
 	CRemoveTags(prefixBuffer, sizeof(prefixBuffer));
 
 	PrintToServer("%s%s", prefixBuffer, buffer);
-}
-
-/**
- * Displays usage of an admin command to users depending on the 
- * setting of the sm_show_activity cvar.  
- *
- * This version does not display a message to the originating client 
- * if used from chat triggers or menus.  If manual replies are used 
- * for these cases, then this function will suffice.  Otherwise, 
- * CShowActivity2() is slightly more useful.
- * Supports color tags.
- *
- * @param client		Client index doing the action, or 0 for server.
- * @param format		Formatting rules.
- * @param ...			Variable number of format parameters.
- * 
- * @error
- */
-stock void CShowActivity(int author, const char[] message, any ...) {
-	char buffer[MC_MAX_MESSAGE_LENGTH];
-	SetGlobalTransTarget(LANG_SERVER);
-	VFormat(buffer, sizeof(buffer), message, 3);
-
-	MC_ShowActivity(author, "%s", buffer);
-}
-
-/**
- * Same as C_ShowActivity(), except the tag parameter is used instead of "[SM] " (note that you must supply any spacing).
- * Supports color tags.
- *
- * @param client		Client index doing the action, or 0 for server.
- * @param tags			Tag to display with.
- * @param format		Formatting rules.
- * @param ...			Variable number of format parameters.
- * 
- * @error
- */
-stock void CShowActivityEx(int author, const char[] tag, const char[] message, any ...) {
-	char buffer[MC_MAX_MESSAGE_LENGTH];
-	SetGlobalTransTarget(LANG_SERVER);
-	VFormat(buffer, sizeof(buffer), message, 4);
-
-	MC_ShowActivityEx(author, tag, "%s", buffer);
-}
-
-/**
- * Displays usage of an admin command to users depending on the setting of the sm_show_activity cvar.
- * All users receive a message in their chat text, except for the originating client, 
- * who receives the message based on the current ReplySource.
- * Supports color tags.
- *
- * @param client		Client index doing the action, or 0 for server.
- * @param tags			Tag to prepend to the message.
- * @param format		Formatting rules.
- * @param ...			Variable number of format parameters.
- * 
- * @error
- */
- stock void CShowActivity2(int author, const char[] tag, const char[] message, any ...) {
-	char buffer[MC_MAX_MESSAGE_LENGTH];
-	SetGlobalTransTarget(LANG_SERVER);
-	VFormat(buffer, sizeof(buffer), message, 4);
-
-	MC_ShowActivity2(author, tag, "%s", buffer);
-}
-
-/**
- * Replaces color tags in a string with color codes
- *
- * @param message       String.
- * @param maxlength     Maximum length of the string buffer.
- */
-stock void CFormatColor(char[] message, int maxlength, int author = -1) {
-	if (author == -1) {
-		author = 0;
-	}
-
-	MC_ReplaceColorCodes(message, author, false, maxlength);
-}
-
-/**
- * Removes color tags from a message
- * 
- * @param message		Message to remove tags from
- * @param maxlen		Maximum buffer length
- */
-stock void CRemoveTags(char[] message, int maxlen) {
-	MC_RemoveTags(message, maxlen);
 }
 
 stock bool IsSource2009() {
