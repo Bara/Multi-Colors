@@ -49,15 +49,30 @@ public Action Command_ClearPrefix(int client, int args)
 
 public Action Command_MultiColors(int client, int args)
 {
-	CPrintToChat(client, "CPrintToChat - {darkblue}%s - {darkred}%s", "Test", "Test");
-	CPrintToChatAll("CPrintToChatAll - {darkblue}%s - {darkred}%s", "Test", "Test");
-	CPrintToChatEx(client, client, "CPrintToChatEx - {darkblue}%s - {darkred}%s", "Test", "Test");
-	CPrintToChatAllEx(client, "CPrintToChatAllEx - {darkblue}%s - {darkred}%s", "Test", "Test");
-	CReplyToCommand(client, "CReplyToCommand - {darkblue}%s - {darkred}%s", "Test", "Test");
-	CReplyToCommandEx(client, client, "CReplyToCommandEx - {darkblue}%s - {darkred}%s", "Test", "Test");
-	CShowActivity(client, "CShowActivity - {darkblue}%s - {darkred}%s", "Test", "Test");
-	CShowActivityEx(client, "[SM]", "CShowActivityEx - {darkblue}%s - {darkred}%s", "Test", "Test");
-	CShowActivity2(client, "[SM]", "CShowActivity2 - {darkblue}%s - {darkred}%s", "Test", "Test");
+	if (IsSource2009())
+	{
+		CPrintToChat(client, "CPrintToChat - {deepskyblue}%s - {firebrick}%s", "Test", "Test");
+		CPrintToChatAll("CPrintToChatAll - {deepskyblue}%s - {firebrick}%s", "Test", "Test");
+		CPrintToChatEx(client, client, "CPrintToChatEx - {deepskyblue}%s - {firebrick}%s", "Test", "Test");
+		CPrintToChatAllEx(client, "CPrintToChatAllEx - {deepskyblue}%s - {firebrick}%s", "Test", "Test");
+		CReplyToCommand(client, "CReplyToCommand - {deepskyblue}%s - {firebrick}%s", "Test", "Test");
+		CReplyToCommandEx(client, client, "CReplyToCommandEx - {deepskyblue}%s - {firebrick}%s", "Test", "Test");
+		CShowActivity(client, "CShowActivity - {deepskyblue}%s - {firebrick}%s", "Test", "Test");
+		CShowActivityEx(client, "[SM]", "CShowActivityEx - {deepskyblue}%s - {firebrick}%s", "Test", "Test");
+		CShowActivity2(client, "[SM]", "CShowActivity2 - {deepskyblue}%s - {firebrick}%s", "Test", "Test");
+	}
+	else
+	{
+		CPrintToChat(client, "CPrintToChat - {darkblue}%s - {darkred}%s", "Test", "Test");
+		CPrintToChatAll("CPrintToChatAll - {darkblue}%s - {darkred}%s", "Test", "Test");
+		CPrintToChatEx(client, client, "CPrintToChatEx - {darkblue}%s - {darkred}%s", "Test", "Test");
+		CPrintToChatAllEx(client, "CPrintToChatAllEx - {darkblue}%s - {darkred}%s", "Test", "Test");
+		CReplyToCommand(client, "CReplyToCommand - {darkblue}%s - {darkred}%s", "Test", "Test");
+		CReplyToCommandEx(client, client, "CReplyToCommandEx - {darkblue}%s - {darkred}%s", "Test", "Test");
+		CShowActivity(client, "CShowActivity - {darkblue}%s - {darkred}%s", "Test", "Test");
+		CShowActivityEx(client, "[SM]", "CShowActivityEx - {darkblue}%s - {darkred}%s", "Test", "Test");
+		CShowActivity2(client, "[SM]", "CShowActivity2 - {darkblue}%s - {darkred}%s", "Test", "Test");
+	}
 	char sName[MAX_NAME_LENGTH];
 	Format(sName, sizeof(sName), "{green}%N", client);
 	CPrintToChat(client, "CPrintToChat - Name (Before CFormatColor): %s", sName);
