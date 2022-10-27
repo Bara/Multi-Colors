@@ -31,7 +31,7 @@
 #define PREFIX_MAX_LENGTH 64
 #define PREFIX_SEPARATOR "{default} "
 
-static EngineVersion g_evEngineversion = Engine_Unknown;
+static EngineVersion g_evEngineVersion = Engine_Unknown;
 static bool g_bSkipList[MAXPLAYERS+1];
 static StringMap g_smTrie;
 static ConVar g_cShowActivity;
@@ -186,7 +186,7 @@ stock void MC_PrintToChatAllEx(int author, const char[] message, any ...) {
  */
 stock void MC_AddWhiteSpace(char[] buffer, int size)
 {
-	if (!IsSource2009() && !(g_evEngineversion == Engine_Left4Dead) && !(g_evEngineversion == Engine_Left4Dead2)) {
+	if (!IsSource2009() && !(g_evEngineVersion == Engine_Left4Dead) && !(g_evEngineVersion == Engine_Left4Dead2)) {
 		Format(buffer, size, " %s", buffer);
 	}
 }
@@ -209,7 +209,7 @@ stock void MC_SendMessage(int client, const char[] message, int author = 0) {
 
 	UserMsg index = GetUserMessageId("SayText2");
 	if (index == INVALID_MESSAGE_ID) {
-		if (IsSource2009() && g_evEngineversion == Engine_DODS) {
+		if (IsSource2009() && g_evEngineVersion == Engine_DODS) {
 			int team = GetClientTeam(author);
 			if (team == 0) {
 				ReplaceString(buffer, sizeof(buffer), "\x03", "\x04", false); // Unassigned gets green
@@ -1373,15 +1373,15 @@ stock void CRemoveTags(char[] message, int maxlen) {
 }
 
 stock bool IsSource2009() {
-	if (g_evEngineversion == Engine_Unknown)
+	if (g_evEngineVersion == Engine_Unknown)
 	{
-		g_evEngineversion = GetEngineVersion();
+		g_evEngineVersion = GetEngineVersion();
 	}
 
-	return (g_evEngineversion == Engine_CSS
-	|| g_evEngineversion == Engine_HL2DM
-	|| g_evEngineversion == Engine_DODS
-	|| g_evEngineversion == Engine_TF2
-	|| g_evEngineversion == Engine_Insurgency
-	|| g_evEngineversion == Engine_SDK2013);
+	return (g_evEngineVersion == Engine_CSS
+	|| g_evEngineVersion == Engine_HL2DM
+	|| g_evEngineVersion == Engine_DODS
+	|| g_evEngineVersion == Engine_TF2
+	|| g_evEngineVersion == Engine_Insurgency
+	|| g_evEngineVersion == Engine_SDK2013);
 }
