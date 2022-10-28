@@ -205,6 +205,7 @@ stock void CSendMessage(int client, const char[] message, int author = 0) {
 	char buffer[MAX_MESSAGE_LENGTH];
 	strcopy(buffer, sizeof(buffer), message);
 
+	CAddPrefix(buffer, sizeof(buffer));
 	CAddWhiteSpace(buffer, sizeof(buffer));
 
 	UserMsg index = GetUserMessageId("SayText2");
@@ -1104,6 +1105,9 @@ stock void CSetPrefix(const char[] sPrefix, any ...) {
 
 	// Add ending space
 	Format(g_sPrefix, sizeof(g_sPrefix), "%s%s", g_sPrefix, PREFIX_SEPARATOR);
+
+	// Set colors
+	CReplaceColorCodes(g_sPrefix);
 }
 
 /**
@@ -1178,6 +1182,25 @@ stock void CPrintToServer(const char[] message, any ...) {
 	CRemoveTags(prefixBuffer, sizeof(prefixBuffer));
 
 	PrintToServer("%s%s", prefixBuffer, buffer);
+}
+
+/**
+ * Replaces color tags in a string with color codes
+ *
+ * @param message       String.
+ * @param maxlength     Maximum length of the string buffer.
+ */
+stock void CFormatColor(char[] message, int maxlength, int author = -1) {
+	if (author == -1) {
+		author = 0;
+	}
+
+	CReplaceColorCodes(message, author, false, maxlength);
+}
+
+stock void CAddPrefix(char[] buffer, int size)
+{
+	Format(buffer, size, "%s%s", g_sPrefix, buffer);
 }
 
 stock bool IsSource2009() {
