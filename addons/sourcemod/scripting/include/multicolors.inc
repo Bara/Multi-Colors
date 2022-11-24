@@ -390,6 +390,439 @@ stock void CShowActivityEx(int author, const char[] tag, const char[] message, a
 	else {
 		MC_ShowActivity2(author, tag, "%s", buffer);
 	}
+
+	if (!value) {
+		return 1;
+	}
+
+	for (int i = 1; i <= MaxClients; ++i) {
+		if (!IsClientInGame(i) || IsFakeClient(i) || i == client) {
+			continue;
+		}
+
+		AdminId id = GetUserAdmin(i);
+		SetGlobalTransTarget(i);
+		if (id == INVALID_ADMIN_ID || !id.HasFlag(Admin_Generic, Access_Effective)) {
+			/* Treat this as a normal user. */
+			if ((value & 1) | (value & 2)) {
+				char newsign[MAX_NAME_LENGTH];
+
+				if ((value & 2)) {
+					newsign = name;
+				}
+				else {
+					newsign = sign;
+				}
+
+				VFormat(szBuffer, sizeof(szBuffer), format, 4);
+
+				CPrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
+			}
+		}
+		else {
+			/* Treat this as an admin user */
+			bool is_root = id.HasFlag(Admin_Root, Access_Effective);
+			if ((value & 4) || (value & 8) || ((value & 16) && is_root)) {
+				char newsign[MAX_NAME_LENGTH];
+				
+
+				if ((value & 8) || ((value & 16) && is_root)) {
+					newsign = name;
+				}
+				else {
+					newsign = sign;
+				}
+
+				VFormat(szBuffer, sizeof(szBuffer), format, 4);
+
+				CPrintToChatEx(i, client, "%s%s: %s", tag, newsign, szBuffer);
+			}
+		}
+	}
+
+	return 1;
+}
+
+/**
+ * Determines whether a color name exists
+ * 
+ * @param color			The color name to check
+ * @return				True if the color exists, false otherwise
+ */
+stock bool CColorExists(const char[] color) {
+	CCheckTrie();
+	char temp[32];
+	return g_smTrie.GetString(color, temp, sizeof(temp));
+}
+
+/**
+ * Returns the hexadecimal representation of a client's team color (will NOT initialize the trie)
+ *
+ * @param client		Client to get the team color for
+ * @param value			Client's team color, or green if unknown
+ * @param size			Size of the value parameter
+ * @return				Client's team color has been found
+ * On error/Errors:		If the client index passed is invalid or not in game.
+ */
+stock bool CGetTeamColor(int client, char[] value, int size) {
+	if (client <= 0 || client > MaxClients) {
+		ThrowError("Invalid client index %i", client);
+		return false;
+	}
+
+	if (!IsClientInGame(client)) {
+		ThrowError("Client %i is not in game", client);
+		return false;
+	}
+
+	StringMap smTrie = CGetTrie();
+	if (smTrie == null)
+	{
+		ThrowError("No color in StringMap tree", client);
+		return false;
+	}
+
+	switch(GetClientTeam(client)) {
+		case 1: {
+			smTrie.GetString("gray", value, size);
+		}
+		case 2: {
+			smTrie.GetString("red", value, size);
+		}
+		case 3: {
+			smTrie.GetString("blue", value, size);
+		}
+		default: {
+			smTrie.GetString("green", value, size);
+		}
+	}
+
+	return true;
+}
+
+stock StringMap CInitColorTrie() {
+	StringMap hTrie = new StringMap();
+
+	if (IsSource2009()) {
+		SetTrieString(hTrie, "default", "\x01");
+		SetTrieString(hTrie, "teamcolor", "\x03");
+
+		SetTrieString(hTrie, "aliceblue", "\x07F0F8FF");
+		SetTrieString(hTrie, "allies", "\x074D7942"); // same as Allies team in DoD:S
+		SetTrieString(hTrie, "ancient", "\x07EB4B4B"); // same as Ancient item rarity in Dota 2
+		SetTrieString(hTrie, "antiquewhite", "\x07FAEBD7");
+		SetTrieString(hTrie, "aqua", "\x0700FFFF");
+		SetTrieString(hTrie, "aquamarine", "\x077FFFD4");
+		SetTrieString(hTrie, "arcana", "\x07ADE55C"); // same as Arcana item rarity in Dota 2
+		SetTrieString(hTrie, "axis", "\x07FF4040"); // same as Axis team in DoD:S
+		SetTrieString(hTrie, "azure", "\x07007FFF");
+		SetTrieString(hTrie, "beige", "\x07F5F5DC");
+		SetTrieString(hTrie, "bisque", "\x07FFE4C4");
+		SetTrieString(hTrie, "black", "\x07000000");
+		SetTrieString(hTrie, "blanchedalmond", "\x07FFEBCD");
+		SetTrieString(hTrie, "blue", "\x0799CCFF"); // same as BLU/Counter-Terrorist team color
+		SetTrieString(hTrie, "blueviolet", "\x078A2BE2");
+		SetTrieString(hTrie, "brown", "\x07A52A2A");
+		SetTrieString(hTrie, "burlywood", "\x07DEB887");
+		SetTrieString(hTrie, "cadetblue", "\x075F9EA0");
+		SetTrieString(hTrie, "chartreuse", "\x077FFF00");
+		SetTrieString(hTrie, "chocolate", "\x07D2691E");
+		SetTrieString(hTrie, "collectors", "\x07AA0000"); // same as Collector's item quality in TF2
+		SetTrieString(hTrie, "common", "\x07B0C3D9"); // same as Common item rarity in Dota 2
+		SetTrieString(hTrie, "community", "\x0770B04A"); // same as Community item quality in TF2
+		SetTrieString(hTrie, "coral", "\x07FF7F50");
+		SetTrieString(hTrie, "cornflowerblue", "\x076495ED");
+		SetTrieString(hTrie, "cornsilk", "\x07FFF8DC");
+		SetTrieString(hTrie, "corrupted", "\x07A32C2E"); // same as Corrupted item quality in Dota 2
+		SetTrieString(hTrie, "crimson", "\x07DC143C");
+		SetTrieString(hTrie, "cyan", "\x0700FFFF");
+		SetTrieString(hTrie, "darkblue", "\x0700008B");
+		SetTrieString(hTrie, "darkcyan", "\x07008B8B");
+		SetTrieString(hTrie, "darkgoldenrod", "\x07B8860B");
+		SetTrieString(hTrie, "darkgray", "\x07A9A9A9");
+		SetTrieString(hTrie, "darkgrey", "\x07A9A9A9");
+		SetTrieString(hTrie, "darkgreen", "\x07006400");
+		SetTrieString(hTrie, "darkkhaki", "\x07BDB76B");
+		SetTrieString(hTrie, "darkmagenta", "\x078B008B");
+		SetTrieString(hTrie, "darkolivegreen", "\x07556B2F");
+		SetTrieString(hTrie, "darkorange", "\x07FF8C00");
+		SetTrieString(hTrie, "darkorchid", "\x079932CC");
+		SetTrieString(hTrie, "darkred", "\x078B0000");
+		SetTrieString(hTrie, "darksalmon", "\x07E9967A");
+		SetTrieString(hTrie, "darkseagreen", "\x078FBC8F");
+		SetTrieString(hTrie, "darkslateblue", "\x07483D8B");
+		SetTrieString(hTrie, "darkslategray", "\x072F4F4F");
+		SetTrieString(hTrie, "darkslategrey", "\x072F4F4F");
+		SetTrieString(hTrie, "darkturquoise", "\x0700CED1");
+		SetTrieString(hTrie, "darkviolet", "\x079400D3");
+		SetTrieString(hTrie, "deeppink", "\x07FF1493");
+		SetTrieString(hTrie, "deepskyblue", "\x0700BFFF");
+		SetTrieString(hTrie, "dimgray", "\x07696969");
+		SetTrieString(hTrie, "dimgrey", "\x07696969");
+		SetTrieString(hTrie, "dodgerblue", "\x071E90FF");
+		SetTrieString(hTrie, "exalted", "\x07CCCCCD"); // same as Exalted item quality in Dota 2
+		SetTrieString(hTrie, "firebrick", "\x07B22222");
+		SetTrieString(hTrie, "floralwhite", "\x07FFFAF0");
+		SetTrieString(hTrie, "forestgreen", "\x07228B22");
+		SetTrieString(hTrie, "frozen", "\x074983B3"); // same as Frozen item quality in Dota 2
+		SetTrieString(hTrie, "fuchsia", "\x07FF00FF");
+		SetTrieString(hTrie, "fullblue", "\x070000FF");
+		SetTrieString(hTrie, "fullred", "\x07FF0000");
+		SetTrieString(hTrie, "gainsboro", "\x07DCDCDC");
+		SetTrieString(hTrie, "genuine", "\x074D7455"); // same as Genuine item quality in TF2
+		SetTrieString(hTrie, "ghostwhite", "\x07F8F8FF");
+		SetTrieString(hTrie, "gold", "\x07FFD700");
+		SetTrieString(hTrie, "goldenrod", "\x07DAA520");
+		SetTrieString(hTrie, "gray", "\x07CCCCCC"); // same as spectator team color
+		SetTrieString(hTrie, "grey", "\x07CCCCCC");
+		SetTrieString(hTrie, "green", "\x073EFF3E");
+		SetTrieString(hTrie, "greenyellow", "\x07ADFF2F");
+		SetTrieString(hTrie, "haunted", "\x0738F3AB"); // same as Haunted item quality in TF2
+		SetTrieString(hTrie, "honeydew", "\x07F0FFF0");
+		SetTrieString(hTrie, "hotpink", "\x07FF69B4");
+		SetTrieString(hTrie, "immortal", "\x07E4AE33"); // same as Immortal item rarity in Dota 2
+		SetTrieString(hTrie, "indianred", "\x07CD5C5C");
+		SetTrieString(hTrie, "indigo", "\x074B0082");
+		SetTrieString(hTrie, "ivory", "\x07FFFFF0");
+		SetTrieString(hTrie, "khaki", "\x07F0E68C");
+		SetTrieString(hTrie, "lavender", "\x07E6E6FA");
+		SetTrieString(hTrie, "lavenderblush", "\x07FFF0F5");
+		SetTrieString(hTrie, "lawngreen", "\x077CFC00");
+		SetTrieString(hTrie, "legendary", "\x07D32CE6"); // same as Legendary item rarity in Dota 2
+		SetTrieString(hTrie, "lemonchiffon", "\x07FFFACD");
+		SetTrieString(hTrie, "lightblue", "\x07ADD8E6");
+		SetTrieString(hTrie, "lightcoral", "\x07F08080");
+		SetTrieString(hTrie, "lightcyan", "\x07E0FFFF");
+		SetTrieString(hTrie, "lightgoldenrodyellow", "\x07FAFAD2");
+		SetTrieString(hTrie, "lightgray", "\x07D3D3D3");
+		SetTrieString(hTrie, "lightgrey", "\x07D3D3D3");
+		SetTrieString(hTrie, "lightgreen", "\x0799FF99");
+		SetTrieString(hTrie, "lightpink", "\x07FFB6C1");
+		SetTrieString(hTrie, "lightsalmon", "\x07FFA07A");
+		SetTrieString(hTrie, "lightseagreen", "\x0720B2AA");
+		SetTrieString(hTrie, "lightskyblue", "\x0787CEFA");
+		SetTrieString(hTrie, "lightslategray", "\x07778899");
+		SetTrieString(hTrie, "lightslategrey", "\x07778899");
+		SetTrieString(hTrie, "lightsteelblue", "\x07B0C4DE");
+		SetTrieString(hTrie, "lightyellow", "\x07FFFFE0");
+		SetTrieString(hTrie, "lime", "\x0700FF00");
+		SetTrieString(hTrie, "limegreen", "\x0732CD32");
+		SetTrieString(hTrie, "linen", "\x07FAF0E6");
+		SetTrieString(hTrie, "magenta", "\x07FF00FF");
+		SetTrieString(hTrie, "maroon", "\x07800000");
+		SetTrieString(hTrie, "mediumaquamarine", "\x0766CDAA");
+		SetTrieString(hTrie, "mediumblue", "\x070000CD");
+		SetTrieString(hTrie, "mediumorchid", "\x07BA55D3");
+		SetTrieString(hTrie, "mediumpurple", "\x079370D8");
+		SetTrieString(hTrie, "mediumseagreen", "\x073CB371");
+		SetTrieString(hTrie, "mediumslateblue", "\x077B68EE");
+		SetTrieString(hTrie, "mediumspringgreen", "\x0700FA9A");
+		SetTrieString(hTrie, "mediumturquoise", "\x0748D1CC");
+		SetTrieString(hTrie, "mediumvioletred", "\x07C71585");
+		SetTrieString(hTrie, "midnightblue", "\x07191970");
+		SetTrieString(hTrie, "mintcream", "\x07F5FFFA");
+		SetTrieString(hTrie, "mistyrose", "\x07FFE4E1");
+		SetTrieString(hTrie, "moccasin", "\x07FFE4B5");
+		SetTrieString(hTrie, "mythical", "\x078847FF"); // same as Mythical item rarity in Dota 2
+		SetTrieString(hTrie, "navajowhite", "\x07FFDEAD");
+		SetTrieString(hTrie, "navy", "\x07000080");
+		SetTrieString(hTrie, "normal", "\x07B2B2B2"); // same as Normal item quality in TF2
+		SetTrieString(hTrie, "oldlace", "\x07FDF5E6");
+		SetTrieString(hTrie, "olive", "\x079EC34F");
+		SetTrieString(hTrie, "olivedrab", "\x076B8E23");
+		SetTrieString(hTrie, "orange", "\x07FFA500");
+		SetTrieString(hTrie, "orangered", "\x07FF4500");
+		SetTrieString(hTrie, "orchid", "\x07DA70D6");
+		SetTrieString(hTrie, "palegoldenrod", "\x07EEE8AA");
+		SetTrieString(hTrie, "palegreen", "\x0798FB98");
+		SetTrieString(hTrie, "paleturquoise", "\x07AFEEEE");
+		SetTrieString(hTrie, "palevioletred", "\x07D87093");
+		SetTrieString(hTrie, "papayawhip", "\x07FFEFD5");
+		SetTrieString(hTrie, "peachpuff", "\x07FFDAB9");
+		SetTrieString(hTrie, "peru", "\x07CD853F");
+		SetTrieString(hTrie, "pink", "\x07FFC0CB");
+		SetTrieString(hTrie, "plum", "\x07DDA0DD");
+		SetTrieString(hTrie, "powderblue", "\x07B0E0E6");
+		SetTrieString(hTrie, "purple", "\x07800080");
+		SetTrieString(hTrie, "rare", "\x074B69FF"); // same as Rare item rarity in Dota 2
+		SetTrieString(hTrie, "red", "\x07FF4040"); // same as RED/Terrorist team color
+		SetTrieString(hTrie, "rosybrown", "\x07BC8F8F");
+		SetTrieString(hTrie, "royalblue", "\x074169E1");
+		SetTrieString(hTrie, "saddlebrown", "\x078B4513");
+		SetTrieString(hTrie, "salmon", "\x07FA8072");
+		SetTrieString(hTrie, "sandybrown", "\x07F4A460");
+		SetTrieString(hTrie, "seagreen", "\x072E8B57");
+		SetTrieString(hTrie, "seashell", "\x07FFF5EE");
+		SetTrieString(hTrie, "selfmade", "\x0770B04A"); // same as Self-Made item quality in TF2
+		SetTrieString(hTrie, "sienna", "\x07A0522D");
+		SetTrieString(hTrie, "silver", "\x07C0C0C0");
+		SetTrieString(hTrie, "skyblue", "\x0787CEEB");
+		SetTrieString(hTrie, "slateblue", "\x076A5ACD");
+		SetTrieString(hTrie, "slategray", "\x07708090");
+		SetTrieString(hTrie, "slategrey", "\x07708090");
+		SetTrieString(hTrie, "snow", "\x07FFFAFA");
+		SetTrieString(hTrie, "springgreen", "\x0700FF7F");
+		SetTrieString(hTrie, "steelblue", "\x074682B4");
+		SetTrieString(hTrie, "strange", "\x07CF6A32"); // same as Strange item quality in TF2
+		SetTrieString(hTrie, "tan", "\x07D2B48C");
+		SetTrieString(hTrie, "teal", "\x07008080");
+		SetTrieString(hTrie, "thistle", "\x07D8BFD8");
+		SetTrieString(hTrie, "tomato", "\x07FF6347");
+		SetTrieString(hTrie, "turquoise", "\x0740E0D0");
+		SetTrieString(hTrie, "uncommon", "\x07B0C3D9"); // same as Uncommon item rarity in Dota 2
+		SetTrieString(hTrie, "unique", "\x07FFD700"); // same as Unique item quality in TF2
+		SetTrieString(hTrie, "unusual", "\x078650AC"); // same as Unusual item quality in TF2
+		SetTrieString(hTrie, "valve", "\x07A50F79"); // same as Valve item quality in TF2
+		SetTrieString(hTrie, "vintage", "\x07476291"); // same as Vintage item quality in TF2
+		SetTrieString(hTrie, "violet", "\x07EE82EE");
+		SetTrieString(hTrie, "wheat", "\x07F5DEB3");
+		SetTrieString(hTrie, "white", "\x07FFFFFF");
+		SetTrieString(hTrie, "whitesmoke", "\x07F5F5F5");
+		SetTrieString(hTrie, "yellow", "\x07FFFF00");
+		SetTrieString(hTrie, "yellowgreen", "\x079ACD32");
+	} else {
+		SetTrieString(hTrie, "default", "\x01");
+		SetTrieString(hTrie, "teamcolor", "\x03");     // "\x03" "{lightgreen}" "\x03" "{orange}" "\x03" "{blue}" "\x03" "{purple}"
+
+		SetTrieString(hTrie, "darkred", "\x02");
+		SetTrieString(hTrie, "purple", "\x03");
+		SetTrieString(hTrie, "green", "\x04");
+		SetTrieString(hTrie, "olive", "\x05");
+		SetTrieString(hTrie, "lightgreen", "\x05");
+		SetTrieString(hTrie, "lime", "\x06");
+		SetTrieString(hTrie, "lightred", "\x07");
+		SetTrieString(hTrie, "red", "\x07");
+		SetTrieString(hTrie, "grey", "\x08");
+		SetTrieString(hTrie, "yellow", "\x09");
+		SetTrieString(hTrie, "gold", "\x10");
+		SetTrieString(hTrie, "orange", "\x10");
+		SetTrieString(hTrie, "bluegrey", "\x0A");
+		SetTrieString(hTrie, "blue", "\x0B");
+		SetTrieString(hTrie, "lightblue", "\x0B");
+		SetTrieString(hTrie, "darkblue", "\x0C");
+		SetTrieString(hTrie, "grey2", "\x0D");
+		SetTrieString(hTrie, "orchid", "\x0E");
+		SetTrieString(hTrie, "lightred2", "\x0F");
+	}
+
+	// SetTrieString(hTrie, "engine 1", "\x01");
+	// SetTrieString(hTrie, "engine 2", "\x02");
+	// SetTrieString(hTrie, "engine 3", "\x03");
+	// SetTrieString(hTrie, "engine 4", "\x04");
+	// SetTrieString(hTrie, "engine 5", "\x05");
+	// SetTrieString(hTrie, "engine 6", "\x06");
+	// SetTrieString(hTrie, "engine 7", "\x07");
+	// SetTrieString(hTrie, "engine 8", "\x08");
+	// SetTrieString(hTrie, "engine 9", "\x09");
+	// SetTrieString(hTrie, "engine 10", "\x0A");
+	// SetTrieString(hTrie, "engine 11", "\x0B");
+	// SetTrieString(hTrie, "engine 12", "\x0C");
+	// SetTrieString(hTrie, "engine 13", "\x0D");
+	// SetTrieString(hTrie, "engine 14", "\x0E");
+	// SetTrieString(hTrie, "engine 15", "\x0F");
+	// SetTrieString(hTrie, "engine 16", "\x10");
+
+	return hTrie;
+}
+
+/*
+*
+*   Below are the original sourcemod function names with "C" prefixed for colors
+*
+*/
+
+/**
+ * Add a chat prefix before all chat msg
+ *
+ * @param sPrefix		Prefix
+ */
+stock void CSetPrefix(const char[] sPrefix, any ...) {
+	if (!sPrefix[0]) {
+		return;
+	}
+
+	SetGlobalTransTarget(LANG_SERVER);
+	VFormat(g_sPrefix, sizeof(g_sPrefix) - strlen(PREFIX_SEPARATOR), sPrefix, 2);
+
+	// Add ending space
+	Format(g_sPrefix, sizeof(g_sPrefix), "%s%s", g_sPrefix, PREFIX_SEPARATOR);
+
+	// Set colors
+	CReplaceColorCodes(g_sPrefix);
+}
+
+/**
+ * Add a chat prefix before all chat msg
+ *
+ * @param sPrefix		Prefix
+ */
+stock void CClearPrefix() {
+	g_sPrefix[0] = '\0';
+}
+
+/**
+ * Writes a message to all of a client's observers.
+ *
+ * @param target 	Client index.
+ * @param message	Message (formatting rules).
+ */
+stock void CPrintToChatObservers(int target, const char[] message, any ...) {
+	char buffer[MAX_MESSAGE_LENGTH];
+	SetGlobalTransTarget(LANG_SERVER);
+	VFormat(buffer, sizeof(buffer), message, 3);
+
+ 	for (int client = 1; client <= MaxClients; client++) {
+ 		if (IsClientInGame(client) && !IsPlayerAlive(client) && !IsFakeClient(client)) {
+ 			int observee = GetEntPropEnt(client, Prop_Send, "m_hObserverTarget");
+ 			int ObserverMode = GetEntProp(client, Prop_Send, "m_iObserverMode");
+ 
+ 			if (observee == target && (ObserverMode == 4 || ObserverMode == 5)) {
+ 				CPrintToChat(client, buffer);
+ 			}
+ 		}
+ 	}
+}
+
+/**
+ * Writes a message to all of a client's observers with the correct
+ * game stock.
+ *
+ * @param target 	Client index.
+ * @param message	Message (formatting rules).
+ */
+stock void CPrintToChatObserversEx(int target, const char[] message, any ...) {
+	char buffer[MAX_MESSAGE_LENGTH];
+	SetGlobalTransTarget(LANG_SERVER);
+	VFormat(buffer, sizeof(buffer), message, 3);
+
+ 	for (int client = 1; client <= MaxClients; client++) {
+ 		if (IsClientInGame(client) && !IsPlayerAlive(client) && !IsFakeClient(client)) {
+ 			int observee = GetEntPropEnt(client, Prop_Send, "m_hObserverTarget");
+ 			int ObserverMode = GetEntProp(client, Prop_Send, "m_iObserverMode");
+ 
+ 			if (observee == target && (ObserverMode == 4 || ObserverMode == 5)) {
+ 				CPrintToChatEx(client, target, buffer);
+ 			}
+ 		}
+ 	}
+}
+
+/**
+ * Remove all tags and print to server
+ * 
+ * @param message		Message (formatting rules)
+ */
+stock void CPrintToServer(const char[] message, any ...) {
+	char buffer[MAX_MESSAGE_LENGTH];
+	char prefixBuffer[PREFIX_MAX_LENGTH];
+	SetGlobalTransTarget(LANG_SERVER);
+	VFormat(buffer, sizeof(buffer), message, 2);
+	strcopy(prefixBuffer, sizeof(prefixBuffer), g_sPrefix);
+
+	CRemoveTags(buffer, sizeof(buffer));
+	CRemoveTags(prefixBuffer, sizeof(prefixBuffer));
+
+	PrintToServer("%s%s", prefixBuffer, buffer);
 }
 
 /**
