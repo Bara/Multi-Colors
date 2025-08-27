@@ -3,7 +3,7 @@
 #endif
 #define _multicolors_included
 
-#define MuCo_VERSION "2.1.2"
+#define MuCo_VERSION "2.2.0"
 
 #include "multicolors/morecolors"
 #include "multicolors/colors"
@@ -15,6 +15,7 @@
 *       - Powerlord
 *       - exvel
 *       - Dr. McKay
+*       - Rushaway / maxime1907 (SRCDSLAB)
 *
 *   Based on stamm-colors
 *       - https://github.com/popoklopsi/Stamm/blob/master/include/stamm/stamm-colors.inc
@@ -108,7 +109,7 @@ stock void CPrintToChatAll(const char[] message, any ...) {
 		}
 	}
 	else {
-		MC_CheckTrie();
+		MC_InitFastColors();
 
 		char buffer2[MAX_BUFFER_LENGTH];
 
@@ -143,16 +144,24 @@ stock void CPrintToChatObservers(int target, const char[] message, any ...) {
 		CFixColors();
 	}
 
- 	for (int client = 1; client <= MaxClients; client++) {
- 		if (IsClientInGame(client) && !IsPlayerAlive(client) && !IsFakeClient(client)) {
- 			int observee = GetEntPropEnt(client, Prop_Send, "m_hObserverTarget");
- 			int ObserverMode = GetEntProp(client, Prop_Send, "m_iObserverMode");
- 
- 			if (observee == target && (ObserverMode == 4 || ObserverMode == 5)) {
- 				CPrintToChat(client, buffer);
- 			}
- 		}
- 	}
+	int observee;
+	int ObserverMode;
+
+	for (int client = 1; client <= MaxClients; client++) {
+		if (!IsClientInGame(client) || IsPlayerAlive(client) || IsFakeClient(client)) {
+			continue;
+		}
+
+		ObserverMode = GetEntProp(client, Prop_Send, "m_iObserverMode");
+		if (ObserverMode != 4 && ObserverMode != 5) {
+			continue;
+		}
+
+		observee = GetEntPropEnt(client, Prop_Send, "m_hObserverTarget");
+		if (observee == target) {
+			CPrintToChat(client, buffer);
+		}
+	}
 }
 
 /**
@@ -220,16 +229,23 @@ stock void CPrintToChatObserversEx(int target, const char[] message, any ...) {
 		CFixColors();
 	}
 
- 	for (int client = 1; client <= MaxClients; client++) {
- 		if (IsClientInGame(client) && !IsPlayerAlive(client) && !IsFakeClient(client)) {
- 			int observee = GetEntPropEnt(client, Prop_Send, "m_hObserverTarget");
- 			int ObserverMode = GetEntProp(client, Prop_Send, "m_iObserverMode");
- 
- 			if (observee == target && (ObserverMode == 4 || ObserverMode == 5)) {
- 				CPrintToChatEx(client, target, buffer);
- 			}
- 		}
- 	}
+	int observee;
+	int ObserverMode;
+	for (int client = 1; client <= MaxClients; client++) {
+		if (!IsClientInGame(client) || IsPlayerAlive(client) || IsFakeClient(client)) {
+			continue;
+		}
+
+		ObserverMode = GetEntProp(client, Prop_Send, "m_iObserverMode");
+		if (ObserverMode != 4 && ObserverMode != 5) {
+			continue;
+		}
+
+		observee = GetEntPropEnt(client, Prop_Send, "m_hObserverTarget");
+		if (observee == target) {
+			CPrintToChatEx(client, target, buffer);
+		}
+	}
 }
 
 /**
@@ -453,9 +469,13 @@ stock void CFixColors() {
 }
 
 stock bool IsSource2009() {
-	return (GetEngineVersion() == Engine_CSS
-	|| GetEngineVersion() == Engine_HL2DM
-	|| GetEngineVersion() == Engine_DODS
-	|| GetEngineVersion() == Engine_TF2
-	|| GetEngineVersion() == Engine_SDK2013);
+	static bool checked = false;
+	static bool result = false;
+
+	if (!checked) {
+		EngineVersion engine = GetEngineVersion();
+		result = (engine == Engine_CSS || engine == Engine_HL2DM || engine == Engine_DODS || engine == Engine_TF2 || engine == Engine_SDK2013);
+		checked = true;
+	}
+	return result;
 }
