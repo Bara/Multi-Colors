@@ -24,8 +24,8 @@
 
 bool MC_SkipList[MAXPLAYERS+1];
 int MC_TeamColors[][] = {{0xCCCCCC, 0x4D7942, 0xFF4040}}; // Multi-dimensional array for games that don't support SayText2. First index is the game index (as defined by the GAME_ defines), second index is team. 0 = spectator, 1 = team1, 2 = team2
-static char g_sColorKeys[COLOR_HASH_SIZE][32];
-static char g_sColorValues[COLOR_HASH_SIZE][16];
+char g_sColorKeys[COLOR_HASH_SIZE][32];
+char g_sColorValues[COLOR_HASH_SIZE][16];
 static int g_iColorHash[COLOR_HASH_SIZE];
 static int g_iColorCount = 0;
 
@@ -34,10 +34,10 @@ static ConVar sm_show_activity;
 /**
  * Prints a message to a specific client in the chat area.
  * Supports color tags.
- * 
+ *
  * @param client		Client index.
  * @param message		Message (formatting rules).
- * 
+ *
  * On error/Errors:		If the client is not connected an error will be thrown.
  */
 stock void MC_PrintToChat(int client, const char[] message, any ...) {
@@ -65,7 +65,7 @@ stock void MC_PrintToChat(int client, const char[] message, any ...) {
 /**
  * Prints a message to all clients in the chat area.
  * Supports color tags.
- * 
+ *
  * @param client		Client index.
  * @param message		Message (formatting rules).
  */
@@ -92,11 +92,11 @@ stock void MC_PrintToChatAll(const char[] message, any ...) {
 /**
  * Prints a message to a specific client in the chat area.
  * Supports color tags and teamcolor tag.
- * 
+ *
  * @param client		Client index.
  * @param author		Author index whose color will be used for teamcolor tag.
  * @param message		Message (formatting rules).
- * 
+ *
  * On error/Errors:		If the client or author are not connected an error will be thrown
  */
 stock void MC_PrintToChatEx(int client, int author, const char[] message, any ...) {
@@ -132,7 +132,7 @@ stock void MC_PrintToChatEx(int client, int author, const char[] message, any ..
  *
  * @param author	  Author index whose color will be used for teamcolor tag.
  * @param message   Message (formatting rules).
- * 
+ *
  * On error/Errors:   If the author is not connected an error will be thrown.
  */
 stock void MC_PrintToChatAllEx(int author, const char[] message, any ...) {
@@ -166,7 +166,7 @@ stock void MC_PrintToChatAllEx(int author, const char[] message, any ...) {
 
 /**
  * Sends a SayText2 usermessage
- * 
+ *
  * @param client	Client to send usermessage to
  * @param message	Message to send
  */
@@ -222,14 +222,14 @@ stock void MC_SendMessage(int client, const char[] message, int author = 0) {
  * MC_PrintToChatAll or MC_PrintToChatAllEx. It causes those functions
  * to skip the specified client when printing the message.
  * After printing the message, the client will no longer be skipped.
- * 
+ *
  * @param client   Client index
  */
 stock void MC_SkipNextClient(int client) {
 	if (client <= 0 || client > MaxClients) {
 		ThrowError("Invalid client index %i", client);
 	}
-	
+
 	MC_SkipList[client] = true;
 }
 
@@ -240,7 +240,7 @@ stock void MC_SkipNextClient(int client) {
  * @param author		Optional client index to use for {teamcolor} tags, or 0 for none
  * @param removeTags	Optional boolean value to determine whether we're replacing tags with colors, or just removing tags, used by MC_RemoveTags
  * @param maxlen		Optional value for max buffer length, used by MC_RemoveTags
- * 
+ *
  * On error/Errors:		If the client index passed for author is invalid or not in game.
  */
 stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags = false, int maxlen = MAX_BUFFER_LENGTH) {
@@ -338,7 +338,7 @@ stock void MC_ReplaceColorCodes(char[] buffer, int author = 0, bool removeTags =
 
 /**
  * Gets a part of a string
- * 
+ *
  * @param input			String to get the part from
  * @param output		Buffer to write to
  * @param maxlen		Max length of output buffer
@@ -360,7 +360,7 @@ stock void CSubString(const char[] input, char[] output, int maxlen, int start, 
 
 /**
  * Converts a string to lowercase
- * 
+ *
  * @param buffer		String to convert
  */
 stock void MC_StrToLower(char[] buffer) {
@@ -398,7 +398,7 @@ stock bool MC_AddColor(const char[] name, int color) {
 
 /**
  * Removes color tags from a message
- * 
+ *
  * @param message		Message to remove tags from
  * @param maxlen		Maximum buffer length
  */
@@ -408,7 +408,7 @@ stock void MC_RemoveTags(char[] message, int maxlen) {
 
 /**
  * Replies to a command with colors
- * 
+ *
  * @param client		Client to reply to
  * @param message		Message (formatting rules)
  */
@@ -432,7 +432,7 @@ stock void MC_ReplyToCommand(int client, const char[] message, any ...) {
 
 /**
  * Replies to a command with colors
- * 
+ *
  * @param client		Client to reply to
  * @param author		Client to use for {teamcolor}
  * @param message		Message (formatting rules)
@@ -456,12 +456,12 @@ stock void MC_ReplyToCommandEx(int client, int author, const char[] message, any
 }
 
 /**
- * Displays usage of an admin command to users depending on the 
- * setting of the sm_show_activity cvar.  
+ * Displays usage of an admin command to users depending on the
+ * setting of the sm_show_activity cvar.
  *
- * This version does not display a message to the originating client 
- * if used from chat triggers or menus.  If manual replies are used 
- * for these cases, then this function will suffice.  Otherwise, 
+ * This version does not display a message to the originating client
+ * if used from chat triggers or menus.  If manual replies are used
+ * for these cases, then this function will suffice.  Otherwise,
  * MC_ShowActivity2() is slightly more useful.
  * Supports color tags.
  *
@@ -673,7 +673,7 @@ stock int MC_ShowActivityEx(int client, const char[] tag, const char[] format, a
 
 /**
  * Displays usage of an admin command to users depending on the setting of the sm_show_activity cvar.
- * All users receive a message in their chat text, except for the originating client, 
+ * All users receive a message in their chat text, except for the originating client,
  * who receives the message based on the current ReplySource.
  * Supports color tags.
  *
@@ -715,8 +715,8 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 		SetGlobalTransTarget(client);
 		VFormat(szBuffer, sizeof(szBuffer), format, 4);
 
-		/* We don't display directly to the console because the chat text 
-		 * simply gets added to the console, so we don't want it to print 
+		/* We don't display directly to the console because the chat text
+		 * simply gets added to the console, so we don't want it to print
 		 * twice.
 		 */
 		MC_PrintToChatEx(client, client, "%s%s", szTag, szBuffer);
@@ -762,7 +762,7 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 			bool is_root = id.HasFlag(Admin_Root, Access_Effective);
 			if ((value & 4) || (value & 8) || ((value & 16) && is_root)) {
 				char newsign[MAX_NAME_LENGTH];
-				
+
 
 				if ((value & 8) || ((value & 16) && is_root)) {
 					newsign = name;
@@ -783,7 +783,7 @@ stock int MC_ShowActivity2(int client, const char[] tag, const char[] format, an
 
 /**
  * Determines whether a color name exists
- * 
+ *
  * @param color			The color name to check
  * @return				True if the color exists, false otherwise
  */
@@ -1051,8 +1051,8 @@ stock void MC_FastSetColor(const char[] key, const char[] value) {
 
 		// Found empty slot
 		if (existingIndex == 0) {
-			strcopy(g_sColorKeys[g_iColorCount], 32, key);
-			strcopy(g_sColorValues[g_iColorCount], 16, value);
+			strcopy(g_sColorKeys[g_iColorCount], sizeof(g_sColorKeys[]), key);
+			strcopy(g_sColorValues[g_iColorCount], sizeof(g_sColorValues[]), value);
 			g_iColorHash[hash] = g_iColorCount + 1;
 			g_iColorCount++;
 			return;
@@ -1061,7 +1061,7 @@ stock void MC_FastSetColor(const char[] key, const char[] value) {
 		// Check if key already exists (update case)
 		existingIndex--;
 		if (strcmp(g_sColorKeys[existingIndex], key, false) == 0) {
-			strcopy(g_sColorValues[existingIndex], 16, value);
+			strcopy(g_sColorValues[existingIndex], sizeof(g_sColorValues[]), value);
 			return;
 		}
 
