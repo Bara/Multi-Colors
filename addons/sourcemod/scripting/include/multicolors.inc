@@ -468,6 +468,40 @@ stock void CFixColors() {
 	}
 }
 
+/**
+ * Gets the color code from the color name
+ */
+stock bool CGetColor(const char[] key, char[] output, int maxlen)
+{
+	if (!IsSource2009()) {
+		for (int i = 0; i < sizeof(C_Tag); i++) {
+			if (strcmp(key, C_Tag[i]) != 0) {
+				continue;
+			}
+			
+			strcopy(output, maxlen, C_TagCode[i]);
+		}
+		
+		return true;
+	}
+	else {
+		return MC_FastGetColor(key, output, maxlen);
+	}
+}
+
+/** 
+* Inits the colors list 
+*/
+stock void CInitColors()
+{
+	if (!IsSource2009()) {
+		// Do Nothing. Not implanted yet
+	}
+	else {
+		MC_InitFastColors();
+	}
+}
+
 stock bool IsSource2009() {
 	static bool checked = false;
 	static bool result = false;
